@@ -14,7 +14,8 @@
 // LED biru               : bawaan board (D2)
 //
 // MQTT (broker publik HiveMQ):
-// <TOPIK>/data   -> JSON tiap 1 detik
+// <TOPIK>/data   -> JSON tiap 1 detik (retained: broker menyimpan data terakhir,
+//                   ada "ts" = waktu kirim dari jam internet/NTP)
 // <TOPIK>/pintu  -> "TERBUKA" / "TERTUTUP" saat berubah (retained)
 // <TOPIK>/alarm  -> "ON" / "OFF" saat berubah (retained)
 // <TOPIK>/status -> "online" / "offline" (retained, offline otomatis lewat LWT)
@@ -23,6 +24,7 @@
 #include <WiFi.h>
 #include "src/PubSubClient/PubSubClient.h"   // library sudah dibundel di folder src, tidak perlu install
 #include <DHT.h>
+#include <time.h>
 
 // ---- WiFi (ESP32 hanya bisa WiFi 2.4 GHz) ----
 const char* WIFI_SSID = "NAMA_HOTSPOT";     // ganti dengan nama WiFi/hotspot (2.4 GHz)
@@ -145,6 +147,9 @@ void setup() {
 
   mqtt.setServer(MQTT_HOST, MQTT_PORT);
   mqtt.setBufferSize(512);
+
+  // Jam internet (NTP), supaya data yang disimpan broker punya cap waktu
+  configTime(7 * 3600, 0, "pool.ntp.org", "time.google.com");
 }
 
 void loop() {
@@ -219,14 +224,16 @@ void loop() {
     }
 
     unsigned long bukaDetik = pintuTerbuka ? (millis() - waktuPintuDibuka) / 1000 : 0;
+    time_t ts = time(nullptr);
+    if (ts < 1700000000) ts = 0;   // jam belum sinkron dengan internet -> 0
     char data[200];
     snprintf(data, sizeof(data),
-             "{\"suhu\":%s,\"lembap\":%s,\"pintu\":\"%s\",\"alarm\":%s,\"buka_detik\":%lu,\"uptime\":%lu}",
+             "{\"suhu\":%s,\"lembap\":%s,\"pintu\":\"%s\",\"alarm\":%s,\"buka_detik\":%lu,\"uptime\":%lu,\"ts\":%lu}",
              suhuStr, lembapStr,
              pintuTerbuka ? "TERBUKA" : "TERTUTUP",
              alarm ? "true" : "false",
-             bukaDetik, millis() / 1000);
-    kirim(TOPIK "/data", data, false);
+             bukaDetik, millis() / 1000, (unsigned long)ts);
+    kirim(TOPIK "/data", data, true);   // retained: dashboard langsung dapat data terakhir
     if (mqtt.connected()) {
       Serial.print("[MQTT] Kirim: ");
       Serial.println(data);

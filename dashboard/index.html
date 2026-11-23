@@ -5,210 +5,344 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FridgeGuard Dashboard</title>
 <style>
-  .viz-root {
-    color-scheme: light;
-    --page:           #f3f3f1;
-    --surface-1:      #fcfcfb;
-    --border:         #e2e1dc;
-    --grid:           #ebeae6;
-    --axis:           #c9c8c2;
-    --text-primary:   #0b0b0b;
-    --text-secondary: #52514e;
-    --text-muted:     #7a7974;
-    --series-1:       #2a78d6;
-    --series-2:       #eb6834;
-    --good:           #0ca30c;
-    --warning:        #fab219;
-    --critical:       #d03b3b;
-    --critical-tint:  rgba(208, 59, 59, 0.10);
-  }
-  @media (prefers-color-scheme: dark) {
-    .viz-root {
-      color-scheme: dark;
-      --page:           #121211;
-      --surface-1:      #1a1a19;
-      --border:         #33332f;
-      --grid:           #2a2a27;
-      --axis:           #4a4a45;
-      --text-primary:   #f0efec;
-      --text-secondary: #c3c2b7;
-      --text-muted:     #94938b;
-      --series-1:       #3987e5;
-      --series-2:       #d95926;
-      --critical-tint:  rgba(208, 59, 59, 0.18);
-    }
+  :root {
+    color-scheme: dark;
+    --page: #07151e;
+    --surface-1: #10232e;
+    --text: #eefcff;
+    --muted: #a0b8c1;
+    --series-1: #73e4fa;
+    --series-2: #9aaaff;
+    --good: #86e9cb;
+    --warning: #ffd189;
+    --critical: #ff9392;
+    --edge: rgba(187, 230, 243, .11);
+    --ease: cubic-bezier(.4, 0, .2, 1);
+    --glass: linear-gradient(118deg, rgba(23, 48, 60, .91), rgba(14, 32, 44, .84));
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; }
-  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  .viz-root {
-    min-height: 100vh;
-    background: var(--page);
-    color: var(--text-primary);
-    padding: 24px;
-  }
-  .wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 16px; }
-
-  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
-  h1 { font-size: 24px; margin: 0; letter-spacing: -0.01em; }
-  .sub { margin: 4px 0 0; color: var(--text-secondary); font-size: 14px; }
-  .conn { display: flex; flex-wrap: wrap; gap: 8px; }
-  .pill {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 6px 12px; border-radius: 999px;
-    background: var(--surface-1); border: 1px solid var(--border);
-    font-size: 13px; color: var(--text-secondary);
-  }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex: none; }
-  .is-good .dot { background: var(--good); }
-  .is-warning .dot { background: var(--warning); }
-  .is-critical .dot { background: var(--critical); }
-
-  .banner {
-    display: flex; align-items: center; gap: 12px;
-    padding: 14px 16px; border-radius: 12px;
-    background: var(--critical-tint); border: 1px solid var(--critical);
-    font-size: 15px;
-  }
-  .banner[hidden] { display: none; }
-  .banner svg { flex: none; }
-
-  .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; }
-  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-  .tile { padding: 16px; display: grid; gap: 6px; align-content: start; }
-  .tile .label { font-size: 13px; color: var(--text-secondary); }
-  .tile .value { font-size: 34px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.1; }
-  .tile .value small { font-size: 16px; font-weight: 500; color: var(--text-secondary); margin-left: 2px; }
-  .tile .note { font-size: 12.5px; color: var(--text-muted); }
-  .state { display: inline-flex; align-items: center; gap: 10px; }
-  .state .dot { width: 12px; height: 12px; }
-
-  .charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-  figure { margin: 0; padding: 16px 16px 8px; }
-  figcaption { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-  h2 { font-size: 15px; margin: 0; }
-  .meta { font-size: 12.5px; color: var(--text-muted); }
-  .plot { position: relative; height: 210px; }
-  .plot svg { display: block; overflow: visible; }
-  .plot .empty { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: var(--text-muted); font-size: 13px; }
-  .grid { stroke: var(--grid); stroke-width: 1; }
-  .baseline { stroke: var(--axis); stroke-width: 1; }
-  .ytick, .xtick { fill: var(--text-muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
-  .ytick { text-anchor: end; }
-  .xtick { text-anchor: middle; }
-  .lastlabel { fill: var(--text-primary); font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .cross { stroke: var(--text-muted); stroke-width: 1; stroke-dasharray: 3 3; }
-  .tip {
-    position: absolute; pointer-events: none; z-index: 2;
-    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
-    padding: 6px 10px; font-size: 12.5px; white-space: nowrap;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  body {
+    margin: 0; color: var(--text); background: var(--page);
+    font: 15px/1.5 Inter, "Segoe UI", sans-serif;
     font-variant-numeric: tabular-nums;
   }
-  .tip b { font-weight: 600; }
-  .tip span { color: var(--text-secondary); }
-
-  .section { padding: 16px; }
-  .section h2 { margin-bottom: 12px; }
-  table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
-  th { text-align: left; font-weight: 600; color: var(--text-secondary); font-size: 12.5px; padding: 8px 10px; border-bottom: 1px solid var(--border); }
-  td { padding: 8px 10px; border-bottom: 1px solid var(--grid); }
-  tr:last-child td { border-bottom: none; }
-  td.muted { color: var(--text-muted); }
-  .tag { display: inline-flex; align-items: center; gap: 6px; }
-  .tag .dot { width: 8px; height: 8px; }
-  .scroll { max-height: 280px; overflow: auto; }
-  details summary { cursor: pointer; font-weight: 600; font-size: 14px; }
-  details[open] summary { margin-bottom: 12px; }
-
-  footer { font-size: 12.5px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 6px 16px; }
-  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; color: var(--text-secondary); }
-
-  @media (max-width: 900px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .charts { grid-template-columns: 1fr; } }
-  @media (max-width: 480px) { .viz-root { padding: 16px; } .tile .value { font-size: 28px; } }
+  .viz-root {
+    min-height: 100vh; padding-bottom: 32px;
+    background: radial-gradient(ellipse at 1% 27%, #11363c80, transparent 45%),
+      radial-gradient(ellipse at 94% 41%, #26345865, transparent 43%),
+      linear-gradient(150deg, #0a1a23, #07141e 75%);
+  }
+  .wrap { width: min(1200px, calc(100% - 64px)); margin-inline: auto; }
+  header { border-bottom: 1px solid var(--edge); }
+  header .wrap, .intro, .conn, .brand, .pill, .title-row, .count, figcaption, .section-title, footer {
+    display: flex; align-items: center;
+  }
+  header .wrap, .intro, figcaption { justify-content: space-between; gap: 16px; }
+  header .wrap { min-height: 74px; padding-block: 14px; }
+  .brand { gap: 12px; font-size: 22px; font-weight: 680; letter-spacing: -.055em; }
+  .brand-mark, .icon-box { display: inline-grid; place-items: center; flex: none; }
+  .brand-mark {
+    width: 40px; height: 40px; border-radius: 14px; color: #0c303a;
+    background: linear-gradient(145deg, #b4fff2, #61d6e7);
+  }
+  .icon { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.7; fill: none; stroke-linejoin: round; stroke-linecap: round; flex: none; }
+  .brand-mark .icon { width: 26px; height: 26px; }
+  .conn { gap: 8px; flex-wrap: wrap; }
+  .pill {
+    gap: 8px; padding: 6px 12px; border-radius: 9999px; color: var(--status, var(--muted));
+    background: #ffffff09; box-shadow: inset 0 0 0 1px var(--edge); font-size: 12px;
+    transition: all .3s var(--ease);
+  }
+  .dot { display: inline-block; width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--status, var(--muted)); }
+  .is-good { --status: var(--good); }
+  .is-warning { --status: var(--warning); }
+  .is-critical { --status: var(--critical); }
+  main { display: grid; gap: 18px; }
+  .intro { margin-block: 26px 2px; flex-wrap: wrap; }
+  h1, h2, p, figure { margin: 0; }
+  h1 { font-size: clamp(30px, 3.3vw, 44px); font-weight: 590; letter-spacing: -.06em; line-height: 1.15; }
+  h2 { font-size: 17px; font-weight: 600; letter-spacing: -.025em; }
+  .updated, .note, .meta, .muted, footer { color: var(--muted); }
+  .updated, .note, .meta, footer { font-size: 12px; }
+  .updated { display: flex; align-items: center; gap: 7px; }
+  .updated .icon { width: 14px; }
+  #last-data { color: var(--text); }
+  .banner { background: #452c35; border-radius: 18px; padding: 14px 18px; display: flex; gap: 12px; align-items: center; }
+  [hidden] { display: none !important; }
+  .card {
+    min-width: 0; border-radius: 24px; background: var(--glass); backdrop-filter: blur(14px);
+    box-shadow: inset 0 0 0 1px var(--edge), 0 12px 30px -20px #000c;
+    transition: all .3s var(--ease);
+  }
+  @media (hover: hover) {
+    .bento .card:hover, figure.card:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1px #b6dae238, 0 16px 32px -20px #000; }
+  }
+  .bento { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; grid-template-areas: "door door temp humid" "door door count count"; gap: 14px; }
+  .hero {
+    grid-area: door; position: relative; isolation: isolate; overflow: hidden;
+    min-height: 294px; padding: clamp(20px, 2.5vw, 32px); display: flex; flex-direction: column; align-items: flex-start;
+    background: radial-gradient(ellipse at 80% 48%, #25555e, transparent 64%), linear-gradient(130deg, #16343d, #102631);
+  }
+  .hero::before { content: ""; position: absolute; z-index: -1; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 85% 55%, var(--status), transparent 68%); opacity: 0; transition: opacity .3s var(--ease); }
+  .hero:is(.is-warning, .is-critical)::before { animation: breathe 3s ease-in-out infinite alternate; opacity: .25; }
+  @keyframes breathe { from { opacity: .13; } to { opacity: .34; } }
+  .hero > :not(.fridge-art) { z-index: 1; }
+  .title-row, .section-title { gap: 9px; }
+  .title-row { font-weight: 550; font-size: 15px; }
+  .title-row .icon, .section-title .icon { color: var(--accent, var(--series-1)); }
+  .hero .title-row { color: #d3eff0; }
+  .hero .state { margin-top: 18px; width: fit-content; }
+  .hero .note { margin-top: 5px; }
+  .hero:is(.is-warning, .is-critical) .note { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .duration { margin-top: auto; padding-top: 26px; }
+  .duration span { display: block; }
+  .duration .time { font-size: clamp(36px, 4vw, 58px); letter-spacing: -.06em; line-height: 1.1; font-weight: 520; color: var(--status, var(--text)); }
+  .duration .caption { color: #bed6d9; font-size: 12px; margin-top: 5px; }
+  .fridge-art { position: absolute; right: 1%; top: 2%; width: 53%; height: 96%; pointer-events: none; overflow: visible; }
+  .door-panel { transform-box: fill-box; transform-origin: left center; transition: transform .65s var(--ease); }
+  .hero:is(.is-warning, .is-critical) .door-panel { transform: skewY(-12deg) scaleX(.22); }
+  .temperature { grid-area: temp; --accent: var(--series-1); }
+  .humidity { grid-area: humid; --accent: var(--series-2); }
+  .sensor { padding: 18px 20px 12px; display: flex; flex-direction: column; }
+  .dial { position: relative; width: min(100%, 175px); margin: 12px auto 8px; }
+  .dial svg { display: block; width: 100%; }
+  .arc { fill: none; stroke-width: 7; stroke-linecap: round; }
+  .track { stroke: #a6bbc522; }
+  .level { stroke: var(--accent); stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset .55s var(--ease), opacity .3s; }
+  .level[data-empty] { opacity: 0; }
+  .reading { position: absolute; inset: auto 0 1%; text-align: center; font-size: clamp(26px, 2.8vw, 38px); font-weight: 570; letter-spacing: -.055em; line-height: 1; }
+  .reading small, .count small { font-size: .43em; color: var(--muted); margin-left: 3px; }
+  .scale { display: flex; justify-content: space-between; max-width: 175px; width: 100%; margin: -6px auto 6px; font-size: 10px; color: var(--muted); }
+  .sensor .note { margin-top: auto; text-align: center; }
+  .count { grid-area: count; gap: 12px; padding: 16px 20px; }
+  .count .value { margin-left: auto; white-space: nowrap; font-size: 30px; font-weight: 550; letter-spacing: -.045em; }
+  .icon-box { width: 40px; height: 40px; border-radius: 15px; background: #b7ebe311; color: #98decf; }
+  .charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  figure { padding: 20px 20px 10px; }
+  figcaption { flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  figcaption h2 { display: flex; align-items: center; gap: 9px; }
+  figcaption h2::before { content: ""; width: 16px; height: 4px; border-radius: 6px; background: var(--accent); }
+  #chart-suhu { --accent: var(--series-1); }
+  #chart-lembap { --accent: var(--series-2); }
+  .plot { position: relative; height: 210px; }
+  .plot svg { display: block; overflow: visible; }
+  .empty { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
+  .empty::before { content: ""; width: 44px; height: 20px; background: var(--accent); opacity: .5; clip-path: polygon(0 59%, 23% 59%, 35% 18%, 51% 82%, 64% 40%, 74% 54%, 100% 54%, 100% 61%, 72% 61%, 65% 50%, 50% 97%, 34% 34%, 26% 66%, 0 66%); }
+  .grid { stroke: #afcfda13; stroke-dasharray: 2 6; }
+  .grid:nth-of-type(even) { opacity: 0; }
+  .baseline { stroke: #afcfda35; }
+  .ytick, .xtick { fill: var(--muted); font-size: 10.5px; }
+  .ytick { text-anchor: end; }
+  .xtick { text-anchor: middle; }
+  .lastlabel { fill: var(--accent); font-size: 12px; font-weight: 600; }
+  .cross { stroke: var(--muted); stroke-dasharray: 3 4; }
+  .tip { position: absolute; pointer-events: none; z-index: 2; background: var(--surface-1); border: 1px solid var(--edge); border-radius: 10px; padding: 6px 9px; font-size: 12px; white-space: nowrap; }
+  .section { padding: 18px 22px; }
+  .section-title { margin-bottom: 8px; }
+  .section-title .icon { width: 18px; }
+  .scroll { overflow: auto; max-height: 280px; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0 6px; font-size: 13px; text-align: left; }
+  th, td { padding: 8px 12px; }
+  th { color: var(--muted); font-size: 12px; font-weight: 550; white-space: nowrap; }
+  td { background: #b2d9ec09; }
+  td:first-child { border-radius: 12px 0 0 12px; }
+  td:last-child { border-radius: 0 12px 12px 0; }
+  td:only-child { border-radius: 12px; }
+  .tag, #log-body td:last-child .muted { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 9999px; white-space: nowrap; font-size: 12px; }
+  .tag { color: var(--warning); background: #ffc57415; }
+  .tag.calm { color: var(--good); background: #6bdcbb15; }
+  .tag.alert { color: var(--critical); background: #ff90951a; }
+  #log-body td:last-child .tag { color: var(--critical); background: #ff90951a; }
+  #log-body td:last-child .muted { color: var(--good); background: #6bdcbb15; }
+  summary { cursor: pointer; font-size: 14px; font-weight: 550; }
+  summary::marker { color: var(--series-1); }
+  summary:focus-visible { outline: 2px solid var(--series-1); outline-offset: 4px; }
+  footer { flex-wrap: wrap; gap: 4px 22px; padding-inline: 4px; overflow-wrap: anywhere; }
+  footer code { color: #bccdd4; }
+  /* tombol notifikasi, tombol hapus riwayat, toast alert */
+  button.pill { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
+  button.pill:focus-visible, .link-btn:focus-visible { outline: 2px solid var(--series-1); outline-offset: 3px; }
+  button.pill .icon { width: 14px; height: 14px; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+  .section-head .section-title { margin-bottom: 0; }
+  .link-btn { border: 0; background: none; color: var(--muted); font: inherit; font-size: 12px; cursor: pointer; padding: 4px 6px; border-radius: 8px; }
+  .link-btn:hover { color: var(--text); background: #ffffff0d; }
+  .toasts { position: fixed; right: 18px; bottom: 18px; z-index: 50; display: grid; gap: 10px; width: min(340px, calc(100% - 36px)); }
+  .toast {
+    display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 16px;
+    background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--edge), 0 14px 30px -14px #000;
+    border-left: 4px solid var(--status, var(--series-1)); font-size: 13px;
+    animation: masuk .25s var(--ease);
+  }
+  .toast strong { display: block; font-size: 14px; }
+  .toast span { color: var(--muted); }
+  @keyframes masuk { from { opacity: 0; transform: translateY(8px); } }
+  @media (max-width: 900px) {
+    .wrap { width: calc(100% - 36px); }
+    .sensor { padding-inline: 14px; }
+    .hero { padding: 20px; }
+  }
+  @media (max-width: 720px) {
+    .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "door door" "temp humid" "count count"; }
+    .hero { min-height: 244px; }
+    .fridge-art { width: 48%; }
+    .charts { grid-template-columns: minmax(0, 1fr); }
+    header .wrap { flex-wrap: wrap; gap: 10px; }
+  }
+  @media (max-width: 480px) {
+    .wrap { width: calc(100% - 24px); }
+    .intro { margin-top: 18px; gap: 6px; }
+    .bento, .charts { gap: 10px; }
+    main { gap: 14px; }
+    .hero { min-height: 220px; }
+    .sensor, figure { padding: 14px 12px; }
+    .section { padding: 14px; }
+    .pill { font-size: 11px; }
+    .count { padding: 13px; gap: 8px; }
+    .count .note { font-size: 11px; }
+    .title-row { font-size: 14px; gap: 6px; }
+    th, td { padding-inline: 9px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before { animation: none !important; transition: none !important; }
+    .bento .card:hover, figure.card:hover { transform: none; }
+  }
 </style>
 </head>
 <body>
 <div class="viz-root">
-<div class="wrap">
-
   <header>
-    <div>
-      <h1>FridgeGuard</h1>
-      <p class="sub">Monitoring suhu, kelembapan, dan pintu kulkas secara real-time</p>
-    </div>
-    <div class="conn">
-      <span class="pill" id="pill-broker"><span class="dot"></span><span id="txt-broker">Menghubungkan ke broker&hellip;</span></span>
-      <span class="pill" id="pill-alat"><span class="dot"></span><span id="txt-alat">Alat: menunggu data</span></span>
+    <div class="wrap">
+      <div class="brand"><span class="brand-mark"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 4.5 2.5 8 8 11 5.5-3 8-6.5 8-11V5z"/><path d="M12 7v9m-4-7 8 5m0-5-8 5"/></svg></span>FridgeGuard</div>
+      <div class="conn">
+        <span class="pill" id="pill-broker"><span class="dot"></span><span id="txt-broker">Menghubungkan ke broker&hellip;</span></span>
+        <span class="pill" id="pill-alat"><span class="dot"></span><span id="txt-alat">Alat: menunggu data</span></span>
+        <button class="pill" id="btn-notif" type="button" aria-pressed="false"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4"/></svg><span id="txt-notif">Aktifkan alert</span></button>
+      </div>
     </div>
   </header>
-
-  <div class="banner" id="alarm-banner" role="alert" hidden>
-    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 21h20L12 3z" fill="var(--critical)"/><rect x="11" y="9" width="2" height="6" rx="1" fill="#fff"/><rect x="11" y="16.5" width="2" height="2" rx="1" fill="#fff"/></svg>
-    <div><strong>Peringatan:</strong> pintu kulkas sudah terbuka <b id="alarm-detik">0</b> detik. Segera tutup pintunya.</div>
-  </div>
-
-  <section class="tiles">
-    <div class="card tile">
-      <div class="label">Suhu</div>
-      <div class="value"><span id="val-suhu">&ndash;</span><small>&deg;C</small></div>
-      <div class="note" id="note-suhu">Menunggu data</div>
+  <main class="wrap">
+    <div class="intro">
+      <h1>Ringkasan kulkas</h1>
+      <p class="updated"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>Data terakhir <span id="last-data">&ndash;</span></p>
     </div>
-    <div class="card tile">
-      <div class="label">Kelembapan</div>
-      <div class="value"><span id="val-lembap">&ndash;</span><small>%</small></div>
-      <div class="note" id="note-lembap">Menunggu data</div>
-    </div>
-    <div class="card tile" id="tile-pintu">
-      <div class="label">Pintu</div>
-      <div class="value state"><span class="dot"></span><span id="val-pintu">&ndash;</span></div>
-      <div class="note" id="note-pintu">Menunggu data</div>
-    </div>
-    <div class="card tile">
-      <div class="label">Pintu dibuka</div>
-      <div class="value"><span id="val-buka">0</span><small>kali</small></div>
-      <div class="note">Sejak dashboard ini dibuka</div>
-    </div>
-  </section>
 
-  <section class="charts">
-    <figure class="card" id="chart-suhu">
-      <figcaption><h2>Suhu</h2><span class="meta">&deg;C &middot; maks. 5 menit terakhir</span></figcaption>
-      <div class="plot"></div>
-    </figure>
-    <figure class="card" id="chart-lembap">
-      <figcaption><h2>Kelembapan</h2><span class="meta">% &middot; maks. 5 menit terakhir</span></figcaption>
-      <div class="plot"></div>
-    </figure>
-  </section>
-
-  <section class="card section">
-    <h2>Riwayat pintu</h2>
-    <div class="scroll">
-      <table>
-        <thead><tr><th>Dibuka</th><th>Ditutup</th><th>Lama terbuka</th><th>Peringatan</th></tr></thead>
-        <tbody id="log-body"><tr><td colspan="4" class="muted">Belum ada kejadian pintu sejak dashboard dibuka</td></tr></tbody>
-      </table>
+    <div class="banner" id="alarm-banner" role="alert" hidden>
+      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 21h20L12 3z" fill="var(--critical)"/><rect x="11" y="9" width="2" height="6" rx="1" fill="#fff"/><rect x="11" y="16.5" width="2" height="2" rx="1" fill="#fff"/></svg>
+      <div><strong>Peringatan:</strong> pintu kulkas sudah terbuka <b id="alarm-detik">0</b> detik. Segera tutup pintunya.</div>
     </div>
-  </section>
 
-  <details class="card section">
-    <summary>Data mentah (20 pesan terakhir)</summary>
-    <div class="scroll">
-      <table>
-        <thead><tr><th>Waktu</th><th>Suhu (&deg;C)</th><th>Kelembapan (%)</th><th>Pintu</th><th>Peringatan</th></tr></thead>
-        <tbody id="raw-body"><tr><td colspan="5" class="muted">Belum ada data</td></tr></tbody>
-      </table>
-    </div>
-  </details>
+    <section class="bento" aria-label="Kondisi kulkas">
+      <article class="card hero" id="tile-pintu">
+        <h2 class="title-row"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M5 10h14m-4 3v3"/></svg>Status pintu</h2>
+        <div class="pill state"><span class="dot"></span><span id="val-pintu">&ndash;</span></div>
+        <p class="note" id="note-pintu">Menunggu data</p>
+        <div class="duration"><span class="time" role="timer" aria-label="Durasi pintu terbuka">--:--</span><span class="caption">Durasi pintu terbuka</span></div>
+        <svg class="fridge-art" viewBox="0 0 290 260" aria-hidden="true">
+          <defs>
+            <linearGradient id="fridge-face" x2=".85" y2="1" gradientUnits="objectBoundingBox">
+              <stop stop-color="#e3fffb"/><stop offset=".36" stop-color="#a4dfe3"/><stop offset=".76" stop-color="#7cbac8"/><stop offset="1" stop-color="#558ca1"/>
+            </linearGradient>
+            <linearGradient id="fridge-side" x2="1" y2=".4"><stop stop-color="#649eae"/><stop offset="1" stop-color="#305e73"/></linearGradient>
+            <linearGradient id="fridge-inside" x2="0" y2="1"><stop stop-color="#e5f5da"/><stop offset=".35" stop-color="#99bec0"/><stop offset="1" stop-color="#416a79"/></linearGradient>
+            <radialGradient id="floor-shadow"><stop stop-color="#031720" stop-opacity=".8"/><stop offset="1" stop-color="#091a22" stop-opacity="0"/></radialGradient>
+          </defs>
+          <g fill="none" stroke="#b8faff" stroke-width=".8"><ellipse cx="151" cy="219" rx="124" ry="30" opacity=".13"/><ellipse cx="151" cy="219" rx="102" ry="24" opacity=".18"/></g>
+          <ellipse cx="153" cy="220" rx="89" ry="22" fill="url(#floor-shadow)"/>
+          <path d="m90 201 9 2v11l-9-2zm93 6 8-3v10l-8 3z" fill="#15323e"/>
+          <path d="m89 44 32-14q4-2 9-1l79 10q7 1 7 8v150q0 6-5 8l-29 13-8-11z" fill="url(#fridge-side)" stroke="#8abcc9" stroke-width=".8"/>
+          <path d="m90 42 33-13 84 10q5 1 6 3l-34 15z" fill="#b4e2e5"/>
+          <g transform="translate(81 42) skewY(7)">
+            <rect width="103" height="167" rx="10" fill="#427486" stroke="#b7e1e4"/>
+            <rect x="5" y="6" width="93" height="153" rx="7" fill="url(#fridge-inside)"/>
+            <g fill="#345b69"><path d="M10 43h85v4H10zm0 41h85v4H10zm0 32h85v4H10z"/><rect x="12" y="127" width="78" height="24" rx="4" opacity=".55"/></g>
+            <path d="M23 43V28h11v15m32 41V66h12v18" fill="#e6e9c7"/><path d="M23 28v-4h11v4m32 38v-4h12v4" fill="#59969d"/>
+            <g class="door-panel">
+              <rect width="103" height="167" rx="10" fill="url(#fridge-face)" stroke="#c9f5f4"/>
+              <path d="M2 56h98" stroke="#396675" stroke-width="3.2"/><path d="M3 58h97" stroke="#d0ebea" opacity=".6"/>
+              <path d="M5 11q0-6 6-6h78" fill="none" stroke="#fff" stroke-opacity=".6"/>
+              <g fill="#6095a2"><rect x="85" y="32" width="5" height="19" rx="2.5"/><rect x="85" y="65" width="5" height="31" rx="2.5"/></g>
+              <g fill="#edfdf9"><rect x="83" y="31" width="4" height="19" rx="2"/><rect x="83" y="64" width="4" height="31" rx="2"/></g>
+              <rect x="16" y="18" width="25" height="11" rx="4" fill="#365e6b"/>
+              <circle cx="22" cy="23.5" r="1.8" fill="#b1ffdd"/><path d="M27 23.5h8" stroke="#a4e8ee" stroke-width="1.7"/>
+              <g transform="translate(19 77) rotate(-8)"><rect width="22" height="25" rx="3" fill="#eee4cf"/><circle cx="11" cy="1" r="3" fill="#eab58a"/><path d="M5 10h12M5 14h9M5 18h7" stroke="#aeac9b" stroke-width="1.4"/></g>
+              <path d="M15 159h20m3 0h6" stroke="#6c9ca5" stroke-linecap="round"/>
+            </g>
+          </g>
+        </svg>
+      </article>
+      <article class="card sensor temperature" data-min="-20" data-max="40">
+        <h2 class="title-row"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14V5a3 3 0 0 1 6 0v9a5 5 0 1 1-6 0zM12 8v9"/><circle cx="12" cy="17.5" r="1"/></svg>Suhu</h2>
+        <div class="dial">
+          <svg viewBox="0 0 160 83" aria-hidden="true">
+            <path class="arc track" d="M8 77a72 68 0 0 1 144 0"/>
+            <path class="arc level" d="M8 77a72 68 0 0 1 144 0" pathLength="100" data-empty=""/>
+          </svg>
+          <p class="reading"><span id="val-suhu">&ndash;</span><small>&deg;C</small></p>
+        </div>
+        <div class="scale" aria-label="Skala gauge"><span>-20 &deg;C</span><span>40 &deg;C</span></div>
+        <p class="note" id="note-suhu">Menunggu data</p>
+      </article>
+      <article class="card sensor humidity" data-min="0" data-max="100">
+        <h2 class="title-row"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C10 5 5 11 5 15a7 7 0 0 0 14 0c0-4-5-10-7-13Z"/><path d="M8.5 15a3.5 3.5 0 0 0 3.5 3.5"/></svg>Kelembapan</h2>
+        <div class="dial">
+          <svg viewBox="0 0 160 83" aria-hidden="true">
+            <path class="arc track" d="M8 77a72 68 0 0 1 144 0"/>
+            <path class="arc level" d="M8 77a72 68 0 0 1 144 0" pathLength="100" data-empty=""/>
+          </svg>
+          <p class="reading"><span id="val-lembap">&ndash;</span><small>%</small></p>
+        </div>
+        <div class="scale" aria-label="Skala gauge"><span>0 %</span><span>100 %</span></div>
+        <p class="note" id="note-lembap">Menunggu data</p>
+      </article>
+      <article class="card count">
+        <span class="icon-box"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2 7M3 5v6h6m3-4v5l3 2"/></svg></span>
+        <div><h2 class="title-row">Pintu dibuka</h2><p class="note">Tersimpan di browser ini</p></div>
+        <p class="value"><span id="val-buka">0</span><small>kali</small></p>
+      </article>
+    </section>
 
-  <footer>
-    <span>Broker: <code id="info-broker"></code></span>
-    <span>Topik: <code id="info-topik"></code></span>
-    <span>Data terakhir: <span id="last-data">&ndash;</span></span>
-  </footer>
+    <section class="charts">
+      <figure class="card" id="chart-suhu">
+        <figcaption><h2>Tren suhu</h2><span class="meta">&deg;C &middot; maks. 5 menit terakhir</span></figcaption>
+        <div class="plot"></div>
+      </figure>
+      <figure class="card" id="chart-lembap">
+        <figcaption><h2>Tren kelembapan</h2><span class="meta">% &middot; maks. 5 menit terakhir</span></figcaption>
+        <div class="plot"></div>
+      </figure>
+    </section>
 
-</div>
+    <section class="card section">
+      <div class="section-head">
+        <h2 class="section-title">Riwayat pintu</h2>
+        <button class="link-btn" id="btn-reset" type="button">Hapus riwayat</button>
+      </div>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Dibuka</th><th>Ditutup</th><th>Lama terbuka</th><th>Peringatan</th></tr></thead>
+          <tbody id="log-body"><tr><td colspan="4" class="muted">Belum ada kejadian pintu</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <details class="card section">
+      <summary>Log data sensor (20 data terakhir)</summary>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Waktu</th><th>Suhu (&deg;C)</th><th>Kelembapan (%)</th><th>Pintu</th><th>Peringatan</th></tr></thead>
+          <tbody id="raw-body"><tr><td colspan="5" class="muted">Belum ada data</td></tr></tbody>
+        </table>
+      </div>
+    </details>
+
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+
+    <footer>
+      <span>Broker: <code id="info-broker"></code></span>
+      <span>Topik: <code id="info-topik"></code></span>
+    </footer>
+  </main>
 </div>
 
 <script src="mqtt.min.js"></script>
@@ -237,6 +371,121 @@ let dataTerakhirAt = 0;
 let bukaDetikTerakhir = 0;
 let tutupSejak = null;
 
+// =====================================================
+// SIMPAN DI BROWSER (localStorage)
+// Grafik, riwayat pintu, data mentah & jumlah buka tetap ada walau halaman di-refresh.
+// Data TERAKHIR dari alat disimpan online oleh broker (pesan retained dari ESP32).
+// =====================================================
+const KUNCI_SIMPAN = "fridgeguard:" + TOPIK;
+const KUNCI_NOTIF = "fridgeguard:alert";
+
+function muatSimpanan() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KUNCI_SIMPAN) || "null");
+    if (!s) return;
+    const batas = Date.now() - JENDELA_MS - 60000;
+    (s.titik || []).filter((p) => p.t >= batas).forEach((p) => titik.push(p));
+    (s.mentah || []).slice(0, 20).forEach((r) => mentah.push(r));
+    (s.riwayat || []).slice(0, 50).forEach((r) => riwayat.push({ buka: new Date(r.buka), tutup: r.tutup ? new Date(r.tutup) : null, alarm: !!r.alarm }));
+    jumlahBuka = s.jumlahBuka || 0;
+  } catch (e) { console.warn("Data tersimpan rusak, diabaikan:", e); }
+}
+
+let timerSimpan = null;
+function simpan() {
+  clearTimeout(timerSimpan);
+  timerSimpan = setTimeout(() => {
+    try { localStorage.setItem(KUNCI_SIMPAN, JSON.stringify({ titik, mentah, riwayat: riwayat.slice(0, 50), jumlahBuka })); }
+    catch (e) { console.warn("Gagal menyimpan di browser:", e); }
+  }, 300);
+}
+
+// =====================================================
+// ALERT: toast di halaman + notifikasi browser + bunyi (untuk peringatan)
+// =====================================================
+const bisaNotif = "Notification" in window;
+let alertAktif = false;
+try { alertAktif = localStorage.getItem(KUNCI_NOTIF) === "1"; } catch (e) {}
+let audioCtx = null;
+
+function tampilTombolAlert() {
+  const btn = $("btn-notif");
+  btn.classList.remove("is-good", "is-warning", "is-critical");
+  btn.setAttribute("aria-pressed", String(alertAktif));
+  if (bisaNotif && Notification.permission === "denied") {
+    btn.classList.add("is-critical");
+    $("txt-notif").textContent = alertAktif ? "Alert aktif (notifikasi diblokir)" : "Notifikasi diblokir browser";
+  } else if (alertAktif) {
+    btn.classList.add("is-good");
+    $("txt-notif").textContent = "Alert aktif";
+  } else {
+    $("txt-notif").textContent = "Aktifkan alert";
+  }
+}
+
+$("btn-notif").addEventListener("click", async () => {
+  alertAktif = !alertAktif;
+  if (alertAktif) {
+    // bunyi butuh klik pengguna dulu, jadi AudioContext dibuat di sini
+    try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume(); } catch (e) {}
+    if (bisaNotif && Notification.permission === "default") {
+      try { await Notification.requestPermission(); } catch (e) {}
+    }
+    toast("Alert aktif", "Kamu akan dapat alert saat pintu dibuka/ditutup, ada peringatan, atau alat offline.", "is-good");
+  }
+  try { localStorage.setItem(KUNCI_NOTIF, alertAktif ? "1" : "0"); } catch (e) {}
+  tampilTombolAlert();
+});
+
+function bunyi() {
+  if (!audioCtx) return;
+  try {
+    const t = audioCtx.currentTime;
+    [0, 0.25].forEach((mulai) => {
+      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+      osc.type = "square"; osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.0001, t + mulai);
+      gain.gain.exponentialRampToValueAtTime(0.12, t + mulai + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + mulai + 0.2);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(t + mulai); osc.stop(t + mulai + 0.22);
+    });
+  } catch (e) {}
+}
+
+function toast(judul, isi, kelas) {
+  const el = document.createElement("div");
+  el.className = "toast " + (kelas || "");
+  el.setAttribute("role", "status");
+  el.innerHTML = "<div><strong></strong><span></span></div>";
+  el.querySelector("strong").textContent = judul;
+  el.querySelector("span").textContent = isi;
+  $("toasts").prepend(el);
+  while ($("toasts").children.length > 4) $("toasts").lastElementChild.remove();
+  setTimeout(() => el.remove(), 8000);
+}
+
+// dipanggil hanya untuk kejadian BARU (bukan pesan retained saat halaman dibuka)
+function alertPerubahan(judul, isi, kelas, penting) {
+  if (!alertAktif) return;
+  toast(judul, isi, kelas);
+  if (penting) bunyi();
+  if (bisaNotif && Notification.permission === "granted") {
+    try { new Notification("FridgeGuard: " + judul, { body: isi, tag: "fridgeguard-" + judul }); }
+    catch (e) { /* HP tertentu tidak mendukung notifikasi tanpa service worker; toast tetap muncul */ }
+  }
+}
+
+$("btn-reset").addEventListener("click", () => {
+  if (!confirm("Hapus grafik, riwayat pintu, dan data mentah yang tersimpan di browser ini?")) return;
+  titik.length = 0; mentah.length = 0; riwayat.length = 0; jumlahBuka = 0;
+  try { localStorage.removeItem(KUNCI_SIMPAN); } catch (e) {}
+  $("val-buka").textContent = 0;
+  $("log-body").innerHTML = '<tr><td colspan="4" class="muted">Belum ada kejadian pintu</td></tr>';
+  $("raw-body").innerHTML = '<tr><td colspan="5" class="muted">Belum ada data</td></tr>';
+  gambarSemua();
+});
+
 $("info-broker").textContent = BROKER_URL;
 $("info-topik").textContent = TOPIK + "/#";
 
@@ -246,6 +495,12 @@ $("info-topik").textContent = TOPIK + "/#";
 const fmt1 = (v) => v.toLocaleString("id-ID", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const jam = (d) => new Date(d).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 const jamMenit = (d) => new Date(d).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+// jam saja kalau hari ini, tambah tanggal kalau dari hari lain (data tersimpan bisa dari kemarin)
+function waktuLengkap(d) {
+  const t = new Date(d);
+  if (t.toDateString() === new Date().toDateString()) return jam(t);
+  return t.toLocaleDateString("id-ID", { day: "numeric", month: "short" }) + " " + jam(t);
+}
 function durasi(detik) {
   detik = Math.max(0, Math.round(detik));
   if (detik < 60) return detik + " detik";
@@ -375,6 +630,7 @@ window.addEventListener("resize", gambarSemua);
 // =====================================================
 function perkiraanBukaDetik() {
   if (pintu !== "TERBUKA") return 0;
+  if (statusAlat === "offline") return bukaDetikTerakhir;   // alat mati: jangan terus dihitung
   return bukaDetikTerakhir + (dataTerakhirAt ? (Date.now() - dataTerakhirAt) / 1000 : 0);
 }
 
@@ -410,18 +666,26 @@ function tampilRiwayat() {
   if (!riwayat.length) return;
   body.innerHTML = riwayat.slice(0, 50).map((r) => {
     const lama = r.tutup ? (r.tutup - r.buka) / 1000 : (pintu === "TERBUKA" ? perkiraanBukaDetik() : (Date.now() - r.buka) / 1000);
-    const tutup = r.tutup ? jam(r.tutup) : '<span class="tag"><span class="dot" style="background:var(--warning)"></span>masih terbuka</span>';
+    const tutup = r.tutup ? waktuLengkap(r.tutup) : '<span class="tag"><span class="dot" style="background:var(--warning)"></span>masih terbuka</span>';
     const peringatan = r.alarm
       ? '<span class="tag"><span class="dot" style="background:var(--critical)"></span>Ya</span>'
       : '<span class="muted">Tidak</span>';
-    return `<tr><td>${jam(r.buka)}</td><td>${tutup}</td><td>${durasi(lama)}</td><td>${peringatan}</td></tr>`;
+    return `<tr><td>${waktuLengkap(r.buka)}</td><td>${tutup}</td><td>${durasi(lama)}</td><td>${peringatan}</td></tr>`;
   }).join("");
+}
+
+function tampilSensor(suhu, lembap, catatan, waktuData) {
+  $("val-suhu").textContent = suhu == null ? "–" : fmt1(suhu);
+  $("val-lembap").textContent = lembap == null ? "–" : fmt1(lembap);
+  $("note-suhu").textContent = catatan;
+  $("note-lembap").textContent = catatan;
+  $("last-data").textContent = waktuData;
 }
 
 function tampilMentah() {
   if (!mentah.length) return;
   $("raw-body").innerHTML = mentah.map((r) =>
-    `<tr><td>${jam(r.t)}</td><td>${r.suhu == null ? "gagal" : fmt1(r.suhu)}</td><td>${r.lembap == null ? "gagal" : fmt1(r.lembap)}</td><td>${r.pintu}</td><td>${r.alarm ? "Ya" : "Tidak"}</td></tr>`
+    `<tr><td>${waktuLengkap(r.t)}</td><td>${r.suhu == null ? "gagal" : fmt1(r.suhu)}</td><td>${r.lembap == null ? "gagal" : fmt1(r.lembap)}</td><td>${r.pintu}</td><td>${r.alarm ? "Ya" : "Tidak"}</td></tr>`
   ).join("");
 }
 
@@ -451,25 +715,39 @@ client.on("message", (topic, message, packet) => {
     try { d = JSON.parse(isi); } catch (e) { console.warn("Data bukan JSON:", isi); return; }
     const suhu = typeof d.suhu === "number" ? d.suhu : null;
     const lembap = typeof d.lembap === "number" ? d.lembap : null;
-    titik.push({ t: sekarang, suhu, lembap });
-    while (titik.length && titik[0].t < sekarang - JENDELA_MS - 60000) titik.shift();
-    mentah.unshift({ t: sekarang, suhu, lembap, pintu: d.pintu, alarm: !!d.alarm });
-    mentah.length = Math.min(mentah.length, 20);
+    // Pesan retained = data terakhir yang disimpan broker, bisa dari beberapa waktu lalu.
+    // Waktunya diambil dari "ts" (jam NTP di ESP32); kalau tidak ada, waktunya tidak diketahui.
+    const tersimpan = packet.retain;
+    const t = !tersimpan ? sekarang : (d.ts > 1600000000 ? d.ts * 1000 : null);
 
-    dataTerakhirAt = sekarang;
+    if (t !== null) {
+      // data retained biasanya sama dengan titik terakhir yang sudah tersimpan di browser
+      const dobel = (arr) => tersimpan && arr.some((p) => Math.abs(p.t - t) < 1500);
+      if (!dobel(titik)) {
+        titik.push({ t, suhu, lembap });
+        titik.sort((a, b) => a.t - b.t);
+      }
+      while (titik.length && titik[0].t < sekarang - JENDELA_MS - 60000) titik.shift();
+      if (!dobel(mentah)) {
+        mentah.unshift({ t, suhu, lembap, pintu: d.pintu, alarm: !!d.alarm });
+        mentah.sort((a, b) => b.t - a.t);
+        mentah.length = Math.min(mentah.length, 20);
+      }
+      dataTerakhirAt = t;
+    }
     bukaDetikTerakhir = d.buka_detik || 0;
-    if (statusAlat !== "online") statusAlat = "online";
+    if (!tersimpan && statusAlat !== "online") statusAlat = "online";
 
-    $("val-suhu").textContent = suhu == null ? "–" : fmt1(suhu);
-    $("val-lembap").textContent = lembap == null ? "–" : fmt1(lembap);
-    const catatan = suhu == null ? "Sensor gagal baca" : "Diperbarui " + jam(sekarang);
-    $("note-suhu").textContent = catatan;
-    $("note-lembap").textContent = catatan;
-    $("last-data").textContent = jam(sekarang);
+    let catatan;
+    if (suhu == null) catatan = "Sensor gagal baca";
+    else if (tersimpan) catatan = t ? "Tersimpan " + waktuLengkap(t) : "Data terakhir tersimpan";
+    else catatan = "Diperbarui " + jam(sekarang);
+    tampilSensor(suhu, lembap, catatan, t ? waktuLengkap(t) : "tersimpan");
 
     if (pintu === null && d.pintu) pintu = d.pintu;
     gambarSemua();
     tampilMentah();
+    simpan();
   }
 
   else if (topic === TOPIK + "/pintu") {
@@ -477,24 +755,40 @@ client.on("message", (topic, message, packet) => {
     const peristiwa = !packet.retain && isi !== pintu;   // pesan retained = status lama, bukan kejadian baru
     pintu = isi;
     if (isi === "TERBUKA") {
-      bukaDetikTerakhir = 0; dataTerakhirAt = sekarang;
-      if (peristiwa) { riwayat.unshift({ buka: new Date(sekarang), tutup: null, alarm: false }); jumlahBuka++; $("val-buka").textContent = jumlahBuka; }
+      if (!packet.retain) { bukaDetikTerakhir = 0; dataTerakhirAt = sekarang; }
+      if (peristiwa) {
+        riwayat.unshift({ buka: new Date(sekarang), tutup: null, alarm: false });
+        jumlahBuka++; $("val-buka").textContent = jumlahBuka;
+        alertPerubahan("Pintu dibuka", "Pintu kulkas dibuka pukul " + jam(sekarang) + ".", "is-warning", false);
+      }
     } else {
-      tutupSejak = sekarang;
+      if (!packet.retain) tutupSejak = sekarang;
       const terbuka = riwayat.find((r) => r.tutup === null);
       if (terbuka) terbuka.tutup = new Date(sekarang);
+      if (peristiwa) alertPerubahan("Pintu ditutup", "Pintu kulkas ditutup pukul " + jam(sekarang) + ".", "is-good", false);
     }
     tampilRiwayat();
+    simpan();
   }
 
   else if (topic === TOPIK + "/alarm") {
+    const alarmSebelum = alarm;
     alarm = isi === "ON";
     if (alarm) { const terbuka = riwayat.find((r) => r.tutup === null); if (terbuka) terbuka.alarm = true; }
+    if (alarm && !alarmSebelum && !packet.retain) {
+      alertPerubahan("PERINGATAN", "Pintu kulkas terbuka terlalu lama. Segera tutup pintunya!", "is-critical", true);
+    }
     tampilRiwayat();
+    simpan();
   }
 
   else if (topic === TOPIK + "/status") {
-    statusAlat = isi === "offline" ? "offline" : "online";
+    const statusBaru = isi === "offline" ? "offline" : "online";
+    if (!packet.retain && statusBaru !== statusAlat) {
+      if (statusBaru === "offline") alertPerubahan("Alat offline", "ESP32 terputus dari broker.", "is-critical", true);
+      else if (statusAlat === "offline") alertPerubahan("Alat online lagi", "ESP32 tersambung kembali.", "is-good", false);
+    }
+    statusAlat = statusBaru;
   }
 
   tampilPintu(); tampilAlarm(); tampilAlat();
@@ -502,7 +796,121 @@ client.on("message", (topic, message, packet) => {
 
 // update detik "terbuka ..." dan status alat tiap detik
 setInterval(() => { tampilPintu(); tampilAlarm(); tampilAlat(); if (riwayat.some((r) => !r.tutup)) tampilRiwayat(); }, 1000);
+
+// tampilkan data yang tersimpan di browser dulu, sambil menunggu broker
+muatSimpanan();
+$("val-buka").textContent = jumlahBuka;
+tampilRiwayat();
+tampilMentah();
+if (mentah.length) {
+  const r = mentah[0];
+  tampilSensor(r.suhu, r.lembap, "Tersimpan " + waktuLengkap(r.t), waktuLengkap(r.t));
+}
+tampilTombolAlert();
 gambarSemua();
+</script>
+<script>
+// Lapisan visual mengikuti elemen yang diperbarui dashboard.
+(() => {
+  function follow(element, update) {
+    new MutationObserver(update).observe(element, { childList: true });
+    update();
+  }
+
+  document.querySelectorAll(".sensor").forEach((card) => {
+    const reading = card.querySelector(".reading span");
+    const arc = card.querySelector(".level");
+    const min = Number(card.dataset.min);
+    const max = Number(card.dataset.max);
+    follow(reading, () => {
+      const value = Number(reading.textContent.replace(/\./g, "").replace(",", "."));
+      const known = Number.isFinite(value);
+      const fraction = known ? Math.min(1, Math.max(0, (value - min) / (max - min))) : 0;
+      arc.toggleAttribute("data-empty", !known || fraction === 0);
+      arc.style.strokeDashoffset = String(100 * (1 - fraction));
+    });
+  });
+
+  const rawRows = document.getElementById("raw-body");
+  follow(rawRows, () => {
+    for (const row of rawRows.rows) {
+      if (row.cells.length !== 5) continue;
+      for (const cell of [row.cells[3], row.cells[4]]) {
+        const value = cell.textContent;
+        const tone = { TERBUKA: "", TERTUTUP: "calm", Ya: "alert", Tidak: "calm" }[value];
+        if (typeof tone !== "string") continue;
+        const badge = document.createElement("span");
+        badge.className = ("tag " + tone).trim();
+        badge.textContent = value;
+        cell.replaceChildren(badge);
+      }
+    }
+  });
+
+  const hero = document.getElementById("tile-pintu");
+  const elapsed = document.getElementById("alarm-detik");
+  const timer = hero.querySelector(".time");
+  follow(elapsed, () => {
+    if (!hero.matches(".is-good, .is-warning, .is-critical")) return;
+    const seconds = Math.max(0, Number(elapsed.textContent) || 0);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor(seconds / 60) % 60;
+    const parts = hours ? [hours, minutes, seconds % 60] : [minutes, seconds % 60];
+    timer.textContent = parts.map((n) => String(n).padStart(2, "0")).join(":");
+  });
+
+  // Satu kurva per segmen M. Setiap titik dan jeda dari grafik asli dipertahankan.
+  // Batasi kemiringan di tiap titik supaya kurva tidak melampaui nilai sensor.
+  function smoothSegment(points) {
+    let line = "M" + points[0].join(" ");
+    const slopes = points.slice(1).map(([x, y], i) => {
+      const dx = x - points[i][0];
+      return dx > 0 ? (y - points[i][1]) / dx : 0;
+    });
+    function tangent(i) {
+      const a = slopes[i - 1] ?? slopes[i];
+      const b = slopes[i] ?? a;
+      return a * b > 0 ? Math.sign(a) * Math.min(Math.abs(a), Math.abs(b)) : 0;
+    }
+    for (let i = 1; i < points.length; i++) {
+      const [x0, y0] = points[i - 1];
+      const [x1, y1] = points[i];
+      const dx = (x1 - x0) / 3;
+      line += ` C${x0 + dx} ${y0 + dx * tangent(i - 1)},${x1 - dx} ${y1 - dx * tangent(i)},${x1} ${y1}`;
+    }
+    return line;
+  }
+
+  function svgNode(name, attributes) {
+    const node = document.createElementNS("http://www.w3.org/2000/svg", name);
+    for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, value);
+    return node;
+  }
+  document.querySelectorAll("figure > .plot").forEach((plot) => {
+    follow(plot, () => {
+      const line = plot.querySelector("svg > path[fill='none']");
+      if (!line) return;
+      const bottom = plot.querySelector(".baseline").getAttribute("y1");
+      const id = plot.parentElement.id + "-fill";
+      const defs = svgNode("defs", {});
+      const gradient = svgNode("linearGradient", { id, x1: 0, x2: 0, y1: 0, y2: bottom,
+        gradientUnits: "userSpaceOnUse" });
+      for (const [offset, opacity] of [[0, .42], [1, .025]]) {
+        gradient.append(svgNode("stop", { offset, "stop-color": line.getAttribute("stroke"), "stop-opacity": opacity }));
+      }
+      defs.append(gradient);
+      const curves = [], areas = [];
+      for (const segment of line.getAttribute("d").split("M").slice(1)) {
+        const points = segment.split("L").map((pair) => pair.trim().split(/\s+/).map(Number));
+        const curve = smoothSegment(points);
+        curves.push(curve);
+        areas.push(curve + " L" + points[points.length - 1][0] + " " + bottom + " H" + points[0][0] + " Z");
+      }
+      line.before(defs, svgNode("path", { d: areas.join(" "), fill: "url(#" + id + ")", "pointer-events": "none" }));
+      line.setAttribute("d", curves.join(" "));
+    });
+  });
+})();
 </script>
 </body>
 </html>

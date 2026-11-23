@@ -16,6 +16,12 @@ ESP32 --(MQTT, port 1883)--> broker.hivemq.com --(MQTT over WSS, port 8884)--> D
 
 Dashboard tidak punya backend. Browser pengunjung langsung subscribe ke broker, jadi website tetap bisa dibuka kapan saja. Data muncul saat ESP32 menyala; kalau ESP32 mati, dashboard menampilkan "Alat: offline".
 
+Data tanpa database:
+
+- **Data terakhir** disimpan oleh broker (pesan retained dari ESP32). Siapa pun yang membuka dashboard langsung melihat pembacaan terakhir beserta jamnya, walaupun ESP32 sedang mati.
+- **Log** (riwayat pintu, 20 data sensor terakhir, grafik 5 menit, jumlah pintu dibuka) disimpan di browser (localStorage), jadi tidak hilang saat halaman di-refresh. Tombol "Hapus riwayat" mengosongkannya.
+- **Alert**: klik "Aktifkan alert" di pojok kanan atas untuk dapat notifikasi saat pintu dibuka/ditutup, ada peringatan, atau alat offline (selama halaman dashboard terbuka).
+
 ## Struktur folder
 
 ```
@@ -37,7 +43,7 @@ firmware/
 
 | Topik | Isi | Retained |
 |---|---|---|
-| `fridgeguard/kel-7/data` | JSON tiap 1 detik: `suhu`, `lembap`, `pintu`, `alarm`, `buka_detik`, `uptime` | Tidak |
+| `fridgeguard/kel-7/data` | JSON tiap 1 detik: `suhu`, `lembap`, `pintu`, `alarm`, `buka_detik`, `uptime`, `ts` (waktu kirim, detik sejak 1970, dari NTP) | Ya |
 | `fridgeguard/kel-7/pintu` | `TERBUKA` / `TERTUTUP` saat berubah | Ya |
 | `fridgeguard/kel-7/alarm` | `ON` / `OFF` saat berubah | Ya |
 | `fridgeguard/kel-7/status` | `online` / `offline` (offline otomatis lewat Last Will) | Ya |
