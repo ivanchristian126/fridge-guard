@@ -1,0 +1,29 @@
+# Deploy folder dashboard/ ke Azure Static Web Apps setiap ada push ke branch main/master.
+# Butuh 1 secret di GitHub: AZURE_STATIC_WEB_APPS_API_TOKEN (deployment token dari Azure).
+# Cara dapat token & pasang secret: lihat README.md bagian "Deploy ke Azure".
+
+name: Deploy dashboard ke Azure Static Web Apps
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "dashboard/**"
+      - ".github/workflows/azure-static-web-apps.yml"
+  workflow_dispatch: # bisa dijalankan manual dari tab Actions
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload dashboard ke Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: "upload"
+          app_location: "dashboard" # folder yang berisi index.html
+          skip_app_build: true # HTML biasa, tidak perlu build
+          skip_api_build: true # tidak ada backend/API

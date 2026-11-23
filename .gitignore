@@ -1,0 +1,18 @@
+# File sistem Windows / macOS
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Hasil build Arduino / PlatformIO
+build/
+.pio/
+*.bin
+*.elf
+
+# Jaga-jaga kalau nanti password WiFi dipisah ke file sendiri
+arduino_secrets.h
+secrets.h

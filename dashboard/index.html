@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FridgeGuard Dashboard</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --page:           #f3f3f1;
+    --surface-1:      #fcfcfb;
+    --border:         #e2e1dc;
+    --grid:           #ebeae6;
+    --axis:           #c9c8c2;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #7a7974;
+    --series-1:       #2a78d6;
+    --series-2:       #eb6834;
+    --good:           #0ca30c;
+    --warning:        #fab219;
+    --critical:       #d03b3b;
+    --critical-tint:  rgba(208, 59, 59, 0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    .viz-root {
+      color-scheme: dark;
+      --page:           #121211;
+      --surface-1:      #1a1a19;
+      --border:         #33332f;
+      --grid:           #2a2a27;
+      --axis:           #4a4a45;
+      --text-primary:   #f0efec;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #94938b;
+      --series-1:       #3987e5;
+      --series-2:       #d95926;
+      --critical-tint:  rgba(208, 59, 59, 0.18);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .viz-root {
+    min-height: 100vh;
+    background: var(--page);
+    color: var(--text-primary);
+    padding: 24px;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 16px; }
+
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -0.01em; }
+  .sub { margin: 4px 0 0; color: var(--text-secondary); font-size: 14px; }
+  .conn { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-radius: 999px;
+    background: var(--surface-1); border: 1px solid var(--border);
+    font-size: 13px; color: var(--text-secondary);
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex: none; }
+  .is-good .dot { background: var(--good); }
+  .is-warning .dot { background: var(--warning); }
+  .is-critical .dot { background: var(--critical); }
+
+  .banner {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; border-radius: 12px;
+    background: var(--critical-tint); border: 1px solid var(--critical);
+    font-size: 15px;
+  }
+  .banner[hidden] { display: none; }
+  .banner svg { flex: none; }
+
+  .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; }
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .tile { padding: 16px; display: grid; gap: 6px; align-content: start; }
+  .tile .label { font-size: 13px; color: var(--text-secondary); }
+  .tile .value { font-size: 34px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .tile .value small { font-size: 16px; font-weight: 500; color: var(--text-secondary); margin-left: 2px; }
+  .tile .note { font-size: 12.5px; color: var(--text-muted); }
+  .state { display: inline-flex; align-items: center; gap: 10px; }
+  .state .dot { width: 12px; height: 12px; }
+
+  .charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  figure { margin: 0; padding: 16px 16px 8px; }
+  figcaption { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+  h2 { font-size: 15px; margin: 0; }
+  .meta { font-size: 12.5px; color: var(--text-muted); }
+  .plot { position: relative; height: 210px; }
+  .plot svg { display: block; overflow: visible; }
+  .plot .empty { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: var(--text-muted); font-size: 13px; }
+  .grid { stroke: var(--grid); stroke-width: 1; }
+  .baseline { stroke: var(--axis); stroke-width: 1; }
+  .ytick, .xtick { fill: var(--text-muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+  .ytick { text-anchor: end; }
+  .xtick { text-anchor: middle; }
+  .lastlabel { fill: var(--text-primary); font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .cross { stroke: var(--text-muted); stroke-width: 1; stroke-dasharray: 3 3; }
+  .tip {
+    position: absolute; pointer-events: none; z-index: 2;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 12.5px; white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    font-variant-numeric: tabular-nums;
+  }
+  .tip b { font-weight: 600; }
+  .tip span { color: var(--text-secondary); }
+
+  .section { padding: 16px; }
+  .section h2 { margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  th { text-align: left; font-weight: 600; color: var(--text-secondary); font-size: 12.5px; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--grid); }
+  tr:last-child td { border-bottom: none; }
+  td.muted { color: var(--text-muted); }
+  .tag { display: inline-flex; align-items: center; gap: 6px; }
+  .tag .dot { width: 8px; height: 8px; }
+  .scroll { max-height: 280px; overflow: auto; }
+  details summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+  details[open] summary { margin-bottom: 12px; }
+
+  footer { font-size: 12.5px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 6px 16px; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; color: var(--text-secondary); }
+
+  @media (max-width: 900px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .charts { grid-template-columns: 1fr; } }
+  @media (max-width: 480px) { .viz-root { padding: 16px; } .tile .value { font-size: 28px; } }
+</style>
+</head>
+<body>
+<div class="viz-root">
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>FridgeGuard</h1>
+      <p class="sub">Monitoring suhu, kelembapan, dan pintu kulkas secara real-time</p>
+    </div>
+    <div class="conn">
+      <span class="pill" id="pill-broker"><span class="dot"></span><span id="txt-broker">Menghubungkan ke broker&hellip;</span></span>
+      <span class="pill" id="pill-alat"><span class="dot"></span><span id="txt-alat">Alat: menunggu data</span></span>
+    </div>
+  </header>
+
+  <div class="banner" id="alarm-banner" role="alert" hidden>
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 21h20L12 3z" fill="var(--critical)"/><rect x="11" y="9" width="2" height="6" rx="1" fill="#fff"/><rect x="11" y="16.5" width="2" height="2" rx="1" fill="#fff"/></svg>
+    <div><strong>Peringatan:</strong> pintu kulkas sudah terbuka <b id="alarm-detik">0</b> detik. Segera tutup pintunya.</div>
+  </div>
+
+  <section class="tiles">
+    <div class="card tile">
+      <div class="label">Suhu</div>
+      <div class="value"><span id="val-suhu">&ndash;</span><small>&deg;C</small></div>
+      <div class="note" id="note-suhu">Menunggu data</div>
+    </div>
+    <div class="card tile">
+      <div class="label">Kelembapan</div>
+      <div class="value"><span id="val-lembap">&ndash;</span><small>%</small></div>
+      <div class="note" id="note-lembap">Menunggu data</div>
+    </div>
+    <div class="card tile" id="tile-pintu">
+      <div class="label">Pintu</div>
+      <div class="value state"><span class="dot"></span><span id="val-pintu">&ndash;</span></div>
+      <div class="note" id="note-pintu">Menunggu data</div>
+    </div>
+    <div class="card tile">
+      <div class="label">Pintu dibuka</div>
+      <div class="value"><span id="val-buka">0</span><small>kali</small></div>
+      <div class="note">Sejak dashboard ini dibuka</div>
+    </div>
+  </section>
+
+  <section class="charts">
+    <figure class="card" id="chart-suhu">
+      <figcaption><h2>Suhu</h2><span class="meta">&deg;C &middot; maks. 5 menit terakhir</span></figcaption>
+      <div class="plot"></div>
+    </figure>
+    <figure class="card" id="chart-lembap">
+      <figcaption><h2>Kelembapan</h2><span class="meta">% &middot; maks. 5 menit terakhir</span></figcaption>
+      <div class="plot"></div>
+    </figure>
+  </section>
+
+  <section class="card section">
+    <h2>Riwayat pintu</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Dibuka</th><th>Ditutup</th><th>Lama terbuka</th><th>Peringatan</th></tr></thead>
+        <tbody id="log-body"><tr><td colspan="4" class="muted">Belum ada kejadian pintu sejak dashboard dibuka</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <details class="card section">
+    <summary>Data mentah (20 pesan terakhir)</summary>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Waktu</th><th>Suhu (&deg;C)</th><th>Kelembapan (%)</th><th>Pintu</th><th>Peringatan</th></tr></thead>
+        <tbody id="raw-body"><tr><td colspan="5" class="muted">Belum ada data</td></tr></tbody>
+      </table>
+    </div>
+  </details>
+
+  <footer>
+    <span>Broker: <code id="info-broker"></code></span>
+    <span>Topik: <code id="info-topik"></code></span>
+    <span>Data terakhir: <span id="last-data">&ndash;</span></span>
+  </footer>
+
+</div>
+</div>
+
+<script src="mqtt.min.js"></script>
+<script>
+// =====================================================
+// PENGATURAN - harus sama dengan kode ESP32
+// =====================================================
+const params = new URLSearchParams(location.search);
+const BROKER_URL = params.get("broker") || "wss://broker.hivemq.com:8884/mqtt";
+const TOPIK = params.get("topik") || "fridgeguard/kel-7";
+const JENDELA_MS = 5 * 60 * 1000;     // grafik menampilkan 5 menit terakhir
+const BATAS_DATA_HILANG_MS = 10000;   // tidak ada data > 10 detik = alat dianggap tidak mengirim
+
+// =====================================================
+// STATE
+// =====================================================
+const $ = (id) => document.getElementById(id);
+const titik = [];          // {t, suhu, lembap}
+const mentah = [];         // 20 pesan data terakhir
+const riwayat = [];        // {buka: Date, tutup: Date|null, alarm: bool}
+let jumlahBuka = 0;
+let pintu = null;          // "TERBUKA" / "TERTUTUP"
+let alarm = false;
+let statusAlat = null;     // "online" / "offline"
+let dataTerakhirAt = 0;
+let bukaDetikTerakhir = 0;
+let tutupSejak = null;
+
+$("info-broker").textContent = BROKER_URL;
+$("info-topik").textContent = TOPIK + "/#";
+
+// =====================================================
+// FORMAT
+// =====================================================
+const fmt1 = (v) => v.toLocaleString("id-ID", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const jam = (d) => new Date(d).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+const jamMenit = (d) => new Date(d).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+function durasi(detik) {
+  detik = Math.max(0, Math.round(detik));
+  if (detik < 60) return detik + " detik";
+  return Math.floor(detik / 60) + " mnt " + (detik % 60) + " dtk";
+}
+function setPill(id, kelas, teks) {
+  const el = $("pill-" + id);
+  el.classList.remove("is-good", "is-warning", "is-critical");
+  if (kelas) el.classList.add(kelas);
+  $("txt-" + id).textContent = teks;
+}
+
+// =====================================================
+// GRAFIK (SVG buatan sendiri: satu seri per grafik, garis 2px, crosshair + tooltip)
+// =====================================================
+const GRAFIK = {
+  suhu:   { el: $("chart-suhu"),   field: "suhu",   warna: "var(--series-1)", unit: "°C", rentangMin: 2, hoverX: null },
+  lembap: { el: $("chart-lembap"), field: "lembap", warna: "var(--series-2)", unit: "%",      rentangMin: 6, hoverX: null },
+};
+const SVGNS = "http://www.w3.org/2000/svg";
+
+function langkahRapi(kasar) {
+  const p = Math.pow(10, Math.floor(Math.log10(kasar)));
+  const n = kasar / p;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p;
+}
+
+function gambar(key) {
+  const g = GRAFIK[key];
+  const plot = g.el.querySelector(".plot");
+  const W = Math.max(260, plot.clientWidth), H = plot.clientHeight;
+  const m = { l: 40, r: 58, t: 14, b: 26 };
+  const now = Date.now();
+  const adaData = titik.filter((p) => p.t >= now - JENDELA_MS && p[g.field] != null);
+  // rentang waktu tumbuh dari data pertama sampai maksimal 5 menit
+  const span = adaData.length ? Math.min(JENDELA_MS, Math.max(30000, now - adaData[0].t)) : JENDELA_MS;
+  const t0 = now - span;
+  const pts = adaData.filter((p) => p.t >= t0);
+
+  if (!pts.length) {
+    plot.innerHTML = '<p class="empty">Menunggu data dari alat&hellip;</p>';
+    g.geo = null;
+    return;
+  }
+
+  let lo = Math.min(...pts.map((p) => p[g.field]));
+  let hi = Math.max(...pts.map((p) => p[g.field]));
+  if (hi - lo < g.rentangMin) { const c = (hi + lo) / 2; lo = c - g.rentangMin / 2; hi = c + g.rentangMin / 2; }
+  const step = langkahRapi((hi - lo) / 4);
+  lo = Math.floor(lo / step) * step;
+  hi = Math.ceil(hi / step) * step;
+
+  const X = (t) => m.l + ((t - t0) / span) * (W - m.l - m.r);
+  const Y = (v) => m.t + ((hi - v) / (hi - lo)) * (H - m.t - m.b);
+  const desimal = step < 1 ? 1 : 0;
+
+  let s = `<svg width="${W}" height="${H}" role="img" aria-label="Grafik ${key}, nilai terakhir ${fmt1(pts[pts.length - 1][g.field])} ${g.unit}">`;
+  for (let v = lo; v <= hi + step / 1000; v += step) {
+    const y = Y(v).toFixed(1);
+    s += `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${y}" y2="${y}"/>`;
+    s += `<text class="ytick" x="${m.l - 8}" y="${(+y + 4).toFixed(1)}">${v.toLocaleString("id-ID", { minimumFractionDigits: desimal, maximumFractionDigits: desimal })}</text>`;
+  }
+  s += `<line class="baseline" x1="${m.l}" x2="${W - m.r}" y1="${H - m.b}" y2="${H - m.b}"/>`;
+  const langkahX = [5, 10, 15, 30, 60, 120].map((d) => d * 1000).find((d) => span / d <= 5) || 120000;
+  for (let t = Math.ceil(t0 / langkahX) * langkahX; t <= now; t += langkahX) {
+    if (X(t) < m.l + 24) continue;
+    s += `<text class="xtick" x="${X(t).toFixed(1)}" y="${H - 8}">${langkahX < 60000 ? jam(t) : jamMenit(t)}</text>`;
+  }
+
+  // garis, putus kalau ada jeda data > 10 detik
+  let d = "", sebelum = null;
+  for (const p of pts) {
+    const putus = sebelum === null || p.t - sebelum > BATAS_DATA_HILANG_MS;
+    d += (putus ? "M" : "L") + X(p.t).toFixed(1) + " " + Y(p[g.field]).toFixed(1);
+    sebelum = p.t;
+  }
+  s += `<path d="${d}" fill="none" stroke="${g.warna}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+
+  // titik + label nilai terakhir
+  const akhir = pts[pts.length - 1];
+  const xa = X(akhir.t), ya = Y(akhir[g.field]);
+  s += `<circle cx="${xa.toFixed(1)}" cy="${ya.toFixed(1)}" r="4" fill="${g.warna}" stroke="var(--surface-1)" stroke-width="2"/>`;
+  s += `<text class="lastlabel" x="${(xa + 10).toFixed(1)}" y="${(ya + 4).toFixed(1)}">${fmt1(akhir[g.field])}${g.unit === "%" ? "%" : "°"}</text>`;
+
+  // lapisan hover
+  s += `<line class="cross" id="cross-${key}" x1="0" x2="0" y1="${m.t}" y2="${H - m.b}" visibility="hidden"/>`;
+  s += `<circle id="hdot-${key}" r="4" fill="${g.warna}" stroke="var(--surface-1)" stroke-width="2" visibility="hidden"/>`;
+  s += `<rect id="hit-${key}" x="${m.l}" y="0" width="${W - m.l - m.r + 20}" height="${H}" fill="transparent"/>`;
+  s += `</svg><div class="tip" id="tip-${key}" hidden></div>`;
+  plot.innerHTML = s;
+
+  g.geo = { pts, X, Y, W, m };
+  const hit = $("hit-" + key);
+  hit.addEventListener("pointermove", (e) => { g.hoverX = e.offsetX; hover(key); });
+  hit.addEventListener("pointerleave", () => { g.hoverX = null; hover(key); });
+  if (g.hoverX !== null) hover(key);
+}
+
+function hover(key) {
+  const g = GRAFIK[key];
+  const cross = $("cross-" + key), dot = $("hdot-" + key), tip = $("tip-" + key);
+  if (!g.geo || !cross) return;
+  if (g.hoverX === null) {
+    cross.setAttribute("visibility", "hidden");
+    dot.setAttribute("visibility", "hidden");
+    tip.hidden = true;
+    return;
+  }
+  const { pts, X, Y, W, m } = g.geo;
+  let best = pts[0];
+  for (const p of pts) if (Math.abs(X(p.t) - g.hoverX) < Math.abs(X(best.t) - g.hoverX)) best = p;
+  const x = X(best.t), y = Y(best[g.field]);
+  cross.setAttribute("x1", x); cross.setAttribute("x2", x); cross.setAttribute("visibility", "visible");
+  dot.setAttribute("cx", x); dot.setAttribute("cy", y); dot.setAttribute("visibility", "visible");
+  tip.innerHTML = `<span>${jam(best.t)}</span> &middot; <b>${fmt1(best[g.field])} ${g.unit}</b>`;
+  tip.hidden = false;
+  const tw = tip.offsetWidth;
+  tip.style.left = Math.min(Math.max(0, x - tw / 2), W - tw) + "px";
+  tip.style.top = Math.max(0, y - 40) + "px";
+}
+
+function gambarSemua() { gambar("suhu"); gambar("lembap"); }
+window.addEventListener("resize", gambarSemua);
+
+// =====================================================
+// TAMPILAN
+// =====================================================
+function perkiraanBukaDetik() {
+  if (pintu !== "TERBUKA") return 0;
+  return bukaDetikTerakhir + (dataTerakhirAt ? (Date.now() - dataTerakhirAt) / 1000 : 0);
+}
+
+function tampilPintu() {
+  const tile = $("tile-pintu");
+  tile.classList.remove("is-good", "is-warning", "is-critical");
+  if (pintu === null) return;
+  $("val-pintu").textContent = pintu === "TERBUKA" ? "Terbuka" : "Tertutup";
+  if (pintu === "TERBUKA") {
+    tile.classList.add(alarm ? "is-critical" : "is-warning");
+    $("note-pintu").textContent = "Terbuka " + durasi(perkiraanBukaDetik());
+  } else {
+    tile.classList.add("is-good");
+    $("note-pintu").textContent = tutupSejak ? "Tertutup sejak " + jam(tutupSejak) : "Tertutup";
+  }
+}
+
+function tampilAlarm() {
+  $("alarm-banner").hidden = !alarm;
+  $("alarm-detik").textContent = Math.round(perkiraanBukaDetik());
+}
+
+function tampilAlat() {
+  const hilang = dataTerakhirAt && Date.now() - dataTerakhirAt > BATAS_DATA_HILANG_MS;
+  if (statusAlat === "offline") setPill("alat", "is-critical", "Alat: offline");
+  else if (hilang) setPill("alat", "is-warning", "Alat: data tidak masuk");
+  else if (statusAlat === "online" || dataTerakhirAt) setPill("alat", "is-good", "Alat: online");
+  else setPill("alat", null, "Alat: menunggu data");
+}
+
+function tampilRiwayat() {
+  const body = $("log-body");
+  if (!riwayat.length) return;
+  body.innerHTML = riwayat.slice(0, 50).map((r) => {
+    const lama = r.tutup ? (r.tutup - r.buka) / 1000 : (pintu === "TERBUKA" ? perkiraanBukaDetik() : (Date.now() - r.buka) / 1000);
+    const tutup = r.tutup ? jam(r.tutup) : '<span class="tag"><span class="dot" style="background:var(--warning)"></span>masih terbuka</span>';
+    const peringatan = r.alarm
+      ? '<span class="tag"><span class="dot" style="background:var(--critical)"></span>Ya</span>'
+      : '<span class="muted">Tidak</span>';
+    return `<tr><td>${jam(r.buka)}</td><td>${tutup}</td><td>${durasi(lama)}</td><td>${peringatan}</td></tr>`;
+  }).join("");
+}
+
+function tampilMentah() {
+  if (!mentah.length) return;
+  $("raw-body").innerHTML = mentah.map((r) =>
+    `<tr><td>${jam(r.t)}</td><td>${r.suhu == null ? "gagal" : fmt1(r.suhu)}</td><td>${r.lembap == null ? "gagal" : fmt1(r.lembap)}</td><td>${r.pintu}</td><td>${r.alarm ? "Ya" : "Tidak"}</td></tr>`
+  ).join("");
+}
+
+// =====================================================
+// MQTT
+// =====================================================
+const client = mqtt.connect(BROKER_URL, {
+  clientId: "fridgeguard-dash-" + Math.random().toString(16).slice(2, 10),
+  reconnectPeriod: 3000,
+  connectTimeout: 10000,
+});
+
+client.on("connect", () => {
+  setPill("broker", "is-good", "Terhubung ke broker");
+  client.subscribe(TOPIK + "/#");
+});
+client.on("reconnect", () => setPill("broker", "is-warning", "Menghubungkan ulang…"));
+client.on("offline", () => setPill("broker", "is-critical", "Terputus dari broker"));
+client.on("error", (err) => console.warn("MQTT error:", err.message));
+
+client.on("message", (topic, message, packet) => {
+  const isi = message.toString().trim();
+  const sekarang = Date.now();
+
+  if (topic === TOPIK + "/data") {
+    let d;
+    try { d = JSON.parse(isi); } catch (e) { console.warn("Data bukan JSON:", isi); return; }
+    const suhu = typeof d.suhu === "number" ? d.suhu : null;
+    const lembap = typeof d.lembap === "number" ? d.lembap : null;
+    titik.push({ t: sekarang, suhu, lembap });
+    while (titik.length && titik[0].t < sekarang - JENDELA_MS - 60000) titik.shift();
+    mentah.unshift({ t: sekarang, suhu, lembap, pintu: d.pintu, alarm: !!d.alarm });
+    mentah.length = Math.min(mentah.length, 20);
+
+    dataTerakhirAt = sekarang;
+    bukaDetikTerakhir = d.buka_detik || 0;
+    if (statusAlat !== "online") statusAlat = "online";
+
+    $("val-suhu").textContent = suhu == null ? "–" : fmt1(suhu);
+    $("val-lembap").textContent = lembap == null ? "–" : fmt1(lembap);
+    const catatan = suhu == null ? "Sensor gagal baca" : "Diperbarui " + jam(sekarang);
+    $("note-suhu").textContent = catatan;
+    $("note-lembap").textContent = catatan;
+    $("last-data").textContent = jam(sekarang);
+
+    if (pintu === null && d.pintu) pintu = d.pintu;
+    gambarSemua();
+    tampilMentah();
+  }
+
+  else if (topic === TOPIK + "/pintu") {
+    if (isi !== "TERBUKA" && isi !== "TERTUTUP") return;
+    const peristiwa = !packet.retain && isi !== pintu;   // pesan retained = status lama, bukan kejadian baru
+    pintu = isi;
+    if (isi === "TERBUKA") {
+      bukaDetikTerakhir = 0; dataTerakhirAt = sekarang;
+      if (peristiwa) { riwayat.unshift({ buka: new Date(sekarang), tutup: null, alarm: false }); jumlahBuka++; $("val-buka").textContent = jumlahBuka; }
+    } else {
+      tutupSejak = sekarang;
+      const terbuka = riwayat.find((r) => r.tutup === null);
+      if (terbuka) terbuka.tutup = new Date(sekarang);
+    }
+    tampilRiwayat();
+  }
+
+  else if (topic === TOPIK + "/alarm") {
+    alarm = isi === "ON";
+    if (alarm) { const terbuka = riwayat.find((r) => r.tutup === null); if (terbuka) terbuka.alarm = true; }
+    tampilRiwayat();
+  }
+
+  else if (topic === TOPIK + "/status") {
+    statusAlat = isi === "offline" ? "offline" : "online";
+  }
+
+  tampilPintu(); tampilAlarm(); tampilAlat();
+});
+
+// update detik "terbuka ..." dan status alat tiap detik
+setInterval(() => { tampilPintu(); tampilAlarm(); tampilAlat(); if (riwayat.some((r) => !r.tutup)) tampilRiwayat(); }, 1000);
+gambarSemua();
+</script>
+</body>
+</html>
