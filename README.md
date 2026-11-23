@@ -29,7 +29,10 @@ dashboard/                         Website dashboard (yang di-deploy ke Azure)
   index.html
   mqtt.min.js                      Library MQTT.js (lisensi MIT, lihat mqtt-LICENSE.md)
 firmware/
-  FridgeGuard_MQTT/                Versi online: kirim data ke dashboard lewat MQTT
+  FridgeGuard_PIO/                 Versi PlatformIO (VS Code): simulasi Wokwi + upload ke alat asli
+    platformio.ini, src/main.cpp,  (cara pakai lengkap: firmware/FridgeGuard_PIO/README.md)
+    diagram.json, wokwi.toml
+  FridgeGuard_MQTT/                Versi online untuk Arduino IDE: kirim data ke dashboard lewat MQTT
     FridgeGuard_MQTT.ino
     src/PubSubClient/              Library PubSubClient 2.8 (sudah dibundel)
   Arduino_buat_kulkas/             Versi offline (tanpa WiFi)
@@ -60,6 +63,10 @@ firmware/
 Perilaku LED: pintu tertutup = semua mati; pintu terbuka sampai 5 detik = LED kuning nyala; pintu terbuka lebih dari 5 detik = LED kuning + biru kedip (peringatan).
 
 ## Upload firmware ke ESP32
+
+Cara yang disarankan: pakai project PlatformIO di `firmware/FridgeGuard_PIO` (bisa simulasi Wokwi dan upload ke alat asli dari VS Code). Langkahnya ada di [firmware/FridgeGuard_PIO/README.md](firmware/FridgeGuard_PIO/README.md).
+
+Kalau mau pakai Arduino IDE:
 
 1. Buka `firmware/FridgeGuard_MQTT/FridgeGuard_MQTT.ino` di Arduino IDE.
 2. Install library "DHT sensor library" dan "Adafruit Unified Sensor" (Adafruit) dari Library Manager. PubSubClient sudah ikut di folder `src/`.

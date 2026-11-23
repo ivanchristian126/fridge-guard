@@ -207,13 +207,121 @@
     *, *::before { animation: none !important; transition: none !important; }
     .bento .card:hover, figure.card:hover { transform: none; }
   }
+  /* Navigasi aplikasi dan panel pemantauan */
+  :root {
+    --page: #0a1421; --surface-1: #142432; --series-1: #76dfef; --series-2: #b3b2ff;
+    --glass: linear-gradient(125deg, #192e3bdc, #112331ed); --rail: 184px;
+  }
+  .viz-root { padding-left: var(--rail); background: radial-gradient(ellipse at 88% 8%, #19344480, transparent 42%), #0b1825; }
+  .wrap { width: min(1360px, calc(100% - 48px)); }
+  .rail { position: fixed; inset: 0 auto 0 0; z-index: 8; width: var(--rail); padding: 18px 12px; background: #0c1b28f5; border-right: 1px solid var(--edge); }
+  .rail .brand { padding: 0 4px; gap: 8px; margin-bottom: 38px; font-size: 20px; }
+  .rail .brand-mark { width: 34px; height: 34px; border-radius: 12px; }
+  .nav-list { display: grid; gap: 7px; }
+  .nav-list a { display: flex; align-items: center; gap: 10px; padding: 12px 10px; border-radius: 12px; text-decoration: none; font-size: 13px; color: var(--muted); transition: background .2s, color .2s; }
+  .nav-list a:hover { color: var(--text); background: #ffffff08; }
+  .nav-list a[aria-current] { background: #74e4f018; color: #a6f4ff; font-weight: 650; }
+  .nav-list a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--series-1); outline-offset: 3px; }
+  header { background: #101e2cc9; }
+  header .wrap { min-height: 72px; }
+  .top-context { display: grid; gap: 2px; }
+  .top-context time { font-weight: 580; font-size: 14px; }
+  .conn .pill { background: #ffffff08; }
+  .conn .dot { position: relative; }
+  .conn .dot::after { content: ""; position: absolute; inset: 0; border: 1px solid currentColor; border-radius: 50%; animation: signal 2.8s ease-out infinite; }
+  @keyframes signal { 0%, 20% { opacity: .65; transform: scale(1); } 75%, 100% { opacity: 0; transform: scale(2.25); } }
+  .intro { margin-block: 22px 0; }
+  h1 { font-size: clamp(28px, 3vw, 40px); }
+  .view { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .bento { grid-template-columns: 1.1fr 1.1fr 1fr 1fr; }
+  .hero { min-height: 250px; background: radial-gradient(ellipse at 80% 49%, #306572, transparent 67%), linear-gradient(130deg,#183841,#112b39); }
+  .trends { display: grid; grid-template-columns: minmax(0, 2fr) minmax(230px, 1fr); gap: 14px; }
+  .charts { min-width: 0; }
+  .trends figure { padding: 17px 12px 8px; }
+  figcaption .meta { font-size: 11px; }
+  .efficiency { padding: 19px 20px; display: grid; align-content: start; gap: 13px; }
+  .efficiency h2 { line-height: 1.3; }
+  .target-range { font-size: 28px; font-weight: 600; letter-spacing: -.05em; color: var(--series-1); }
+  .zone-scale { position: relative; height: 7px; border-radius: 6px; background: linear-gradient(to right,#738cbe 0% 25%,#78d4c4 25% 62.5%,#d2b685 62.5%); }
+  .zone-scale i { position: absolute; top: -4px; width: 5px; height: 15px; border-radius: 3px; background: white; outline: 2px solid #152532; transform: translateX(-50%); }
+  .range-labels { display: flex; justify-content: space-between; margin-top: 4px; color: var(--muted); font-size: 10px; }
+  .range-stats, .daily, .settings-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+  .range-stats { border-top: 1px solid var(--edge); padding-top: 10px; }
+  .range-stats b { display: block; font-size: 19px; }
+  .stability { font-weight: 600; }
+  .daily article, .settings-grid article, .device-card { padding: 20px 22px; }
+  .daily strong { display: block; font-size: 30px; font-weight: 600; color: var(--series-1); }
+  .device-card dl { display: grid; grid-template-columns: max-content minmax(0,1fr); align-items: baseline; gap: 10px 22px; margin: 14px 0 0; }
+  .device-card dt { color: var(--muted); }
+  .device-card dd { margin: 0; overflow-wrap: anywhere; }
+  .actions, .controls, .filter { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .filter { gap: 2px; border-radius: 999px; padding: 3px; background: #081520; }
+  .filter button, .action-btn { border: 0; border-radius: 999px; padding: 7px 12px; font: inherit; font-size: 12px; cursor: pointer; }
+  .filter button { background: transparent; color: var(--muted); }
+  .filter button[aria-pressed=true] { background: #254250; color: #d0f7fd; }
+  .action-btn { color: #0b2630; background: var(--series-1); font-weight: 650; }
+  .action-btn:disabled { background: #344550; color: #b9c6cd; cursor: default; }
+  .settings-grid .note { margin: 7px 0 14px; }
+  .controls input { width: 6em; border: 1px solid var(--edge); color: var(--text); background: #0b1925; border-radius: 10px; padding: 8px; font: inherit; }
+  .notice { padding: 11px 16px; border-radius: 14px; color: var(--warning); background: #44372a; font-size: 13px; }
+  .demo-status { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 14px; background: #183c48; border-radius: 12px; }
+  .demo-frame { position: fixed; z-index: 100; inset: 0; width: 100%; height: 100%; border: 0; background: var(--page); }
+  body:has(.demo-frame) { overflow: hidden; }
+  .section-head { flex-wrap: wrap; }
+  .mobile-brand { display: none; }
+  .view, .view > *, .trends, .section, .scroll { min-width: 0; }
+  main.wrap { grid-template-columns: minmax(0, 1fr); }
+  .efficiency .target-range small { font-size: .6em; }
+  .efficiency .note { line-height: 1.45; }
+  .efficiency { background: radial-gradient(at 100% 0%, #234548a8, transparent 65%), var(--glass); }
+  @media (min-width: 1101px) and (max-width: 1250px) {
+    :root { --rail: 160px; }
+    .wrap { width: calc(100% - 32px); }
+    .rail { padding-inline: 8px; }
+    .nav-list a { font-size: 12px; }
+  }
+  @media (max-width: 1100px) {
+    :root { --rail: 74px; }
+    .rail .brand { padding: 0; justify-content: center; }
+    .rail .brand-name, .nav-list .nav-label { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
+    .nav-list a { justify-content: center; }
+    .trends { grid-template-columns: minmax(0, 1.7fr) minmax(215px, 1fr); }
+    .charts { grid-template-columns: minmax(0,1fr); }
+
+    .efficiency { align-self: start; }
+  }
+  @media (max-width: 740px) {
+    .viz-root { padding-left: 0; padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+    .wrap { width: calc(100% - 24px); }
+    header .wrap { flex-wrap: wrap; gap: 8px; padding-block: 12px; }
+    .rail { inset: auto 0 0; width: auto; padding: 5px 8px calc(5px + env(safe-area-inset-bottom)); border: 0; border-top: 1px solid var(--edge); backdrop-filter: blur(16px); }
+    .rail .brand { display: none; }
+    .mobile-brand { display: block; color: #adf4ff; font-weight: 650; font-size: 17px; }
+    .nav-list { grid-template-columns: repeat(3, minmax(0,1fr)); gap: 3px; }
+    .nav-list a { flex-direction: column; gap: 3px; padding: 7px 2px; font-size: 10px; }
+    .nav-list .nav-label { position: static; width: auto; height: auto; clip-path: none; }
+    .trends, .settings-grid { grid-template-columns: minmax(0,1fr); }
+    .bento { grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-areas: "door door" "temp humid" "count count"; }
+    .toasts { bottom: calc(80px + env(safe-area-inset-bottom)); }
+    .daily article { padding: 15px; }
+    .daily strong { font-size: 23px; }
+    h1 { margin: 0; }
+  }
 </style>
 </head>
 <body>
 <div class="viz-root">
+  <aside class="rail">
+    <div class="brand"><span class="brand-mark"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 4.5 2.5 8 8 11 5.5-3 8-6.5 8-11V5z"/><path d="M12 7v9m-4-7 8 5m0-5-8 5"/></svg></span><span class="brand-name">FridgeGuard</span></div>
+    <nav class="nav-list" aria-label="Navigasi utama">
+      <a href="#dashboard" title="Dashboard" data-view="dashboard"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="8" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="15" width="7" height="6" rx="2"/></svg><span class="nav-label">Dashboard</span></a>
+      <a href="#riwayat" title="Riwayat &amp; Statistik" data-view="riwayat"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6m3-4v6l4 2"/></svg><span class="nav-label">Riwayat &amp; Statistik</span></a>
+      <a href="#perangkat" title="Perangkat &amp; Simulasi" data-view="perangkat"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="3"/><path d="M9 3v3m6-3v3m-6 12v3m6-3v3M3 9h3m-3 6h3m12-6h3m-3 6h3"/></svg><span class="nav-label">Perangkat &amp; Simulasi</span></a>
+    </nav>
+  </aside>
   <header>
     <div class="wrap">
-      <div class="brand"><span class="brand-mark"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 4.5 2.5 8 8 11 5.5-3 8-6.5 8-11V5z"/><path d="M12 7v9m-4-7 8 5m0-5-8 5"/></svg></span>FridgeGuard</div>
+      <div class="top-context"><span class="mobile-brand">FridgeGuard</span><time id="today"></time><p class="updated"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>Data terakhir <span id="last-data">&ndash;</span></p></div>
       <div class="conn">
         <span class="pill" id="pill-broker"><span class="dot"></span><span id="txt-broker">Menghubungkan ke broker&hellip;</span></span>
         <span class="pill" id="pill-alat"><span class="dot"></span><span id="txt-alat">Alat: menunggu data</span></span>
@@ -223,15 +331,17 @@
   </header>
   <main class="wrap">
     <div class="intro">
-      <h1>Ringkasan kulkas</h1>
-      <p class="updated"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>Data terakhir <span id="last-data">&ndash;</span></p>
+      <h1 id="view-title">Ringkasan kulkas</h1>
     </div>
 
+    <div id="demo-status" class="demo-status" hidden><strong>Mode demo &middot; data simulasi</strong><button type="button" class="link-btn" id="demo-stop">Akhiri demo</button></div>
+    <div class="notice" id="limit-notice" role="status" hidden></div>
     <div class="banner" id="alarm-banner" role="alert" hidden>
       <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 21h20L12 3z" fill="var(--critical)"/><rect x="11" y="9" width="2" height="6" rx="1" fill="#fff"/><rect x="11" y="16.5" width="2" height="2" rx="1" fill="#fff"/></svg>
       <div><strong>Peringatan:</strong> pintu kulkas sudah terbuka <b id="alarm-detik">0</b> detik. Segera tutup pintunya.</div>
     </div>
 
+    <section id="view-dashboard" class="view" aria-label="Dashboard">
     <section class="bento" aria-label="Kondisi kulkas">
       <article class="card hero" id="tile-pintu">
         <h2 class="title-row"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M5 10h14m-4 3v3"/></svg>Status pintu</h2>
@@ -302,6 +412,7 @@
       </article>
     </section>
 
+    <div class="trends">
     <section class="charts">
       <figure class="card" id="chart-suhu">
         <figcaption><h2>Tren suhu</h2><span class="meta">&deg;C &middot; maks. 5 menit terakhir</span></figcaption>
@@ -313,20 +424,32 @@
       </figure>
     </section>
 
-    <section class="card section">
+    <article class="card efficiency">
+      <h2>Status &amp; Efisiensi Kulkas</h2>
+      <div><p class="note">Zona suhu ideal</p><strong class="target-range">1&ndash;4 <small>&deg;C</small></strong></div>
+      <div><div class="zone-scale" aria-hidden="true"><i id="zone-marker" hidden></i></div><div class="range-labels"><span>&minus;1 &deg;C</span><span>7 &deg;C</span></div></div>
+      <p id="zone-status" class="note">Menunggu pembacaan suhu</p>
+      <div class="range-stats"><div><span class="note">Terendah sesi</span><b id="session-min">&ndash;</b></div><div><span class="note">Tertinggi sesi</span><b id="session-max">&ndash;</b></div></div>
+      <div><p class="note">Stabilitas pendinginan</p><p class="stability" id="stability">Menunggu data</p><p class="note">Stabil bila selisih suhu maks. 1 &deg;C dalam sampel 1 menit terakhir.</p></div>
+    </article>
+    </div>
+    <div id="dashboard-log">
+    <section class="card section" id="door-history">
       <div class="section-head">
         <h2 class="section-title">Riwayat pintu</h2>
-        <button class="link-btn" id="btn-reset" type="button">Hapus riwayat</button>
+        <div class="actions"><div id="log-filter" class="filter" aria-label="Filter riwayat" hidden><button type="button" aria-pressed="true" data-warnings="false">Semua</button><button type="button" aria-pressed="false" data-warnings="true">Peringatan</button></div>
+        <button class="link-btn" id="btn-reset" type="button">Hapus riwayat</button></div>
       </div>
       <div class="scroll">
         <table>
-          <thead><tr><th>Dibuka</th><th>Ditutup</th><th>Lama terbuka</th><th>Peringatan</th></tr></thead>
+          <thead><tr><th>Dibuka</th><th>Ditutup</th><th>Lama terbuka</th><th>Suhu awal &rarr; akhir</th><th>Peringatan</th></tr></thead>
           <tbody id="log-body"><tr><td colspan="4" class="muted">Belum ada kejadian pintu</td></tr></tbody>
         </table>
       </div>
+      <p class="note" id="no-warnings" hidden>Belum ada kejadian dengan peringatan.</p>
     </section>
-
-    <details class="card section">
+    </div>
+    <details class="card section" id="sensor-log">
       <summary>Log data sensor (20 data terakhir)</summary>
       <div class="scroll">
         <table>
@@ -335,17 +458,98 @@
         </table>
       </div>
     </details>
+    </section>
+    <section id="view-riwayat" class="view" hidden aria-label="Riwayat dan statistik">
+      <div class="daily">
+        <article class="card"><h2>Pintu dibuka hari ini</h2><strong id="daily-count">0 kali</strong></article>
+        <article class="card"><h2>Durasi terbuka hari ini</h2><strong id="daily-time">0 detik</strong></article>
+      </div>
+      <div id="history-log"></div>
+    </section>
+    <section class="view" id="view-perangkat" hidden aria-label="Perangkat dan simulasi">
+      <article class="card device-card"><h2>Koneksi MQTT</h2><dl>
+        <dt>Broker</dt><dd><code id="info-broker"></code></dd><dt>Topik</dt><dd><code id="info-topik"></code></dd>
+        <dt>Koneksi</dt><dd id="device-broker">&ndash;</dd><dt>Status alat</dt><dd id="device-state">&ndash;</dd>
+      </dl></article>
+      <div class="settings-grid">
+        <article class="card"><h2>Peringatan pintu terbuka</h2><p class="note">Atur batas peringatan visual di browser ini. Alarm LED mengikuti pengaturan ESP32.</p>
+          <form id="limit-form" class="controls"><label for="limit">Batas (detik)</label><input id="limit" type="number" min="1" max="3600" step="1" required value="5"><button class="action-btn" type="submit">Simpan</button></form>
+          <span id="limit-feedback" role="status" class="note"></span>
+        </article>
+        <article class="card"><h2>Mode simulasi / demo</h2><p class="note" id="demo-help">Jalankan simulasi sensor dan pintu saat alat offline. Riwayat demo hanya berlaku selama simulasi.</p>
+          <button id="demo-start" type="button" class="action-btn">Mulai demo</button>
+        </article>
+      </div>
+    </section>
 
     <div class="toasts" id="toasts" aria-live="polite"></div>
 
-    <footer>
-      <span>Broker: <code id="info-broker"></code></span>
-      <span>Topik: <code id="info-topik"></code></span>
-    </footer>
+
   </main>
 </div>
 
 <script src="mqtt.min.js"></script>
+<script>
+// Simulasi berjalan di dokumen terpisah dengan data dan penyimpanan sementara.
+const demoSession = window.parent !== window && window.name === "fridgeguard-offline-demo";
+const demoMemory = new Map();
+function appStorage() {
+  return demoSession ? {
+    getItem: key => demoMemory.get(key) ?? null,
+    setItem: (key, value) => demoMemory.set(key, String(value)),
+    removeItem: key => demoMemory.delete(key)
+  } : window.localStorage;
+}
+
+function createDemoClient() {
+  const listeners = new Map();
+  function emit(event, ...args) {
+    for (const fn of listeners.get(event) || []) fn(...args);
+  }
+  function send(channel, value) {
+    emit("message", TOPIK + "/" + channel, value, { retain: false });
+  }
+  const start = Date.now();
+  const sample = second => ({
+    suhu: Math.round((3.1 + .55 * Math.sin(second / 11) + .23 * Math.cos(second / 5)) * 10) / 10,
+    lembap: Math.round((63 + 4 * Math.sin(second / 16)) * 10) / 10
+  });
+  const samples = [];
+  for (let i = -64; i < 0; i += 2) samples.push({ t: start + i * 1000, ...sample(i) });
+  const history = [{ buka: start - 45000, tutup: start - 36000, alarm: true }];
+  demoMemory.set(KUNCI_SIMPAN, JSON.stringify({
+    titik: samples, mentah: [], riwayat: history, jumlahBuka: history.length
+  }));
+  let previousDoor, previousAlarm;
+  function tick() {
+    const second = Math.floor((Date.now() - start) / 1000);
+    const phase = second % 32;
+    const opened = phase >= 7 && phase < 22;
+    const elapsed = opened ? phase - 7 : 0;
+    const door = opened ? "TERBUKA" : "TERTUTUP";
+    const warning = opened && elapsed >= Number(document.getElementById("limit").defaultValue);
+    if (door !== previousDoor) send("pintu", door);
+    if (warning !== previousAlarm) send("alarm", warning ? "ON" : "OFF");
+    send("data", JSON.stringify({ ...sample(second), pintu: door, buka_detik: elapsed, alarm: warning }));
+    previousDoor = door;
+    previousAlarm = warning;
+  }
+  setTimeout(() => {
+    emit("connect");
+    setPill("broker", null, "Broker: simulasi lokal");
+    send("status", "online");
+    tick();
+    setInterval(tick, 1000);
+  }, 0);
+  return {
+    on(event, fn) {
+      if (!listeners.has(event)) listeners.set(event, []);
+      listeners.get(event).push(fn);
+    },
+    subscribe() {}
+  };
+}
+</script>
 <script>
 // =====================================================
 // PENGATURAN - harus sama dengan kode ESP32
@@ -381,7 +585,7 @@ const KUNCI_NOTIF = "fridgeguard:alert";
 
 function muatSimpanan() {
   try {
-    const s = JSON.parse(localStorage.getItem(KUNCI_SIMPAN) || "null");
+    const s = JSON.parse(appStorage().getItem(KUNCI_SIMPAN) || "null");
     if (!s) return;
     const batas = Date.now() - JENDELA_MS - 60000;
     (s.titik || []).filter((p) => p.t >= batas).forEach((p) => titik.push(p));
@@ -395,7 +599,7 @@ let timerSimpan = null;
 function simpan() {
   clearTimeout(timerSimpan);
   timerSimpan = setTimeout(() => {
-    try { localStorage.setItem(KUNCI_SIMPAN, JSON.stringify({ titik, mentah, riwayat: riwayat.slice(0, 50), jumlahBuka })); }
+    try { appStorage().setItem(KUNCI_SIMPAN, JSON.stringify({ titik, mentah, riwayat: riwayat.slice(0, 50), jumlahBuka })); }
     catch (e) { console.warn("Gagal menyimpan di browser:", e); }
   }, 300);
 }
@@ -405,7 +609,7 @@ function simpan() {
 // =====================================================
 const bisaNotif = "Notification" in window;
 let alertAktif = false;
-try { alertAktif = localStorage.getItem(KUNCI_NOTIF) === "1"; } catch (e) {}
+try { alertAktif = appStorage().getItem(KUNCI_NOTIF) === "1"; } catch (e) {}
 let audioCtx = null;
 
 function tampilTombolAlert() {
@@ -433,7 +637,7 @@ $("btn-notif").addEventListener("click", async () => {
     }
     toast("Alert aktif", "Kamu akan dapat alert saat pintu dibuka/ditutup, ada peringatan, atau alat offline.", "is-good");
   }
-  try { localStorage.setItem(KUNCI_NOTIF, alertAktif ? "1" : "0"); } catch (e) {}
+  try { appStorage().setItem(KUNCI_NOTIF, alertAktif ? "1" : "0"); } catch (e) {}
   tampilTombolAlert();
 });
 
@@ -479,11 +683,12 @@ function alertPerubahan(judul, isi, kelas, penting) {
 $("btn-reset").addEventListener("click", () => {
   if (!confirm("Hapus grafik, riwayat pintu, dan data mentah yang tersimpan di browser ini?")) return;
   titik.length = 0; mentah.length = 0; riwayat.length = 0; jumlahBuka = 0;
-  try { localStorage.removeItem(KUNCI_SIMPAN); } catch (e) {}
+  try { appStorage().removeItem(KUNCI_SIMPAN); } catch (e) {}
   $("val-buka").textContent = 0;
   $("log-body").innerHTML = '<tr><td colspan="4" class="muted">Belum ada kejadian pintu</td></tr>';
   $("raw-body").innerHTML = '<tr><td colspan="5" class="muted">Belum ada data</td></tr>';
   gambarSemua();
+  window.dispatchEvent(new Event("fridgeguard:history-cleared"));
 });
 
 $("info-broker").textContent = BROKER_URL;
@@ -692,7 +897,7 @@ function tampilMentah() {
 // =====================================================
 // MQTT
 // =====================================================
-const client = mqtt.connect(BROKER_URL, {
+const client = demoSession ? createDemoClient() : mqtt.connect(BROKER_URL, {
   clientId: "fridgeguard-dash-" + Math.random().toString(16).slice(2, 10),
   reconnectPeriod: 3000,
   connectTimeout: 10000,
@@ -910,6 +1115,208 @@ gambarSemua();
       line.setAttribute("d", curves.join(" "));
     });
   });
+})();
+</script>
+<script>
+(() => {
+  const names = { dashboard: "Ringkasan kulkas", riwayat: "Riwayat & Statistik", perangkat: "Perangkat & Simulasi" };
+  const dateFormat = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const limitKey = "fridgeguard-ui:limit:" + TOPIK;
+  const sessionsKey = "fridgeguard-ui:events:" + TOPIK;
+  const limitInput = $("limit");
+  const logBody = $("log-body");
+  const degrees = n => Number.isFinite(n) ? fmt1(n) + " °C" : "–";
+  let low = Infinity, high = -Infinity, lastLive = 0, lastReading = mentah[0];
+  let warningsOnly = false, activeView, frame = null;
+  let limit = 5, events = {};
+  try {
+    const saved = Number(appStorage().getItem(limitKey));
+    if (Number.isInteger(saved) && saved >= 1 && saved <= 3600) limit = saved;
+    const storedEvents = JSON.parse(appStorage().getItem(sessionsKey));
+    if (storedEvents && typeof storedEvents === "object" && !Array.isArray(storedEvents)) events = storedEvents;
+  } catch {}
+  if (demoSession) limit = Number(params.get("demoLimit")) || limit;
+  limitInput.defaultValue = limitInput.value = String(limit);
+
+  function stopDemo() {
+    if (!frame) return;
+    frame.remove();
+    frame = null;
+    document.querySelector(".viz-root").inert = false;
+    $("demo-start").focus();
+  }
+  function online() {
+    const recent = Date.now() - lastLive < BATAS_DATA_HILANG_MS;
+    const reportedOnline = statusAlat === "online" && $("pill-alat").classList.contains("is-good");
+    return !demoSession && client.connected && statusAlat !== "offline" && (recent || reportedOnline);
+  }
+  $("demo-start").onclick = () => {
+    if (frame || online() || demoSession) return;
+    const url = new URL(location.href);
+    url.hash = "dashboard";
+    url.searchParams.set("demoLimit", String(limit));
+    frame = document.createElement("iframe");
+    frame.title = "FridgeGuard · Mode demo";
+    frame.className = "demo-frame";
+    frame.name = "fridgeguard-offline-demo";
+    frame.src = url.href;
+    document.body.append(frame);
+    document.querySelector(".viz-root").inert = true;
+    frame.focus();
+  };
+  window.addEventListener("message", e => {
+    if (frame && e.source === frame.contentWindow && e.data === "fridgeguard:end-demo") stopDemo();
+  });
+  $("demo-stop").onclick = () => window.parent.postMessage("fridgeguard:end-demo", location.origin === "null" ? "*" : location.origin);
+  if (demoSession) {
+    $("demo-status").hidden = false;
+    $("btn-notif").hidden = true;
+    $("demo-start").hidden = true;
+    $("demo-help").textContent = "Simulasi berjalan. Pilih Akhiri demo untuk kembali ke perangkat.";
+    $("info-broker").textContent = "Simulator lokal";
+    $("info-topik").textContent = TOPIK + "/# (simulasi)";
+  }
+  $("limit-form").onsubmit = e => {
+    e.preventDefault();
+    if (!limitInput.reportValidity()) return;
+    limit = limitInput.valueAsNumber;
+    limitInput.defaultValue = String(limit);
+    try { appStorage().setItem(limitKey, String(limit)); } catch {}
+    $("limit-feedback").textContent = "Batas aktif " + limit + " detik.";
+    refresh();
+  };
+
+  // Simpan informasi tambahan secara terpisah dari format riwayat asli.
+  function collectEvents() {
+    let changed = false;
+    const midnight = new Date().setHours(0, 0, 0, 0);
+    const latest = riwayat.slice(0, 50);
+    const keep = new Set(latest.map(r => String(+r.buka)));
+    for (const [key, event] of Object.entries(events)) {
+      if ((event.end || Number(key)) < midnight && !keep.has(key)) {
+        delete events[key]; changed = true;
+      }
+    }
+    const recentTemp = time => {
+      for (let i = titik.length - 1; i >= 0; i--) {
+        const p = titik[i];
+        if (p.t > time) continue;
+        if (time - p.t > BATAS_DATA_HILANG_MS) break;
+        if (Number.isFinite(p.suhu)) return p.suhu;
+      }
+      return null;
+    };
+    for (const item of latest) {
+      const start = +item.buka, end = item.tutup ? +item.tutup : null;
+      const saved = events[start];
+      const first = saved?.first ?? recentTemp(start);
+      const last = end ? saved?.last ?? recentTemp(end) : null;
+      if (saved && saved.end === end && saved.first === first && saved.last === last) continue;
+      events[start] = { end, first, last }; changed = true;
+    }
+    if (changed) {
+      try { appStorage().setItem(sessionsKey, JSON.stringify(events)); } catch {}
+    }
+  }
+  function renderLog() {
+    let visible = 0;
+    for (const [index, row] of Array.from(logBody.rows).entries()) {
+      const item = riwayat[index];
+      if (row.cells.length === 1) { row.cells[0].colSpan = 5; continue; }
+      if (!item) continue;
+      const event = events[+item.buka];
+      const cell = row.cells.length === 4 ? row.insertCell(3) : row.cells[3];
+      cell.textContent = event && (event.first != null || event.last != null)
+        ? degrees(event.first) + " → " + degrees(event.last) : "–";
+      row.hidden = activeView === "riwayat" && warningsOnly && !item.alarm;
+      if (!row.hidden) visible++;
+    }
+    $("no-warnings").hidden = !(activeView === "riwayat" && warningsOnly && riwayat.length && !visible);
+  }
+  const logObserver = new MutationObserver(() => { collectEvents(); renderLog(); });
+  logObserver.observe(logBody, { childList: true });
+  $("log-filter").onclick = e => {
+    const button = e.target.closest("button");
+    if (!button) return;
+    warningsOnly = button.dataset.warnings === "true";
+    for (const el of $("log-filter").querySelectorAll("button")) el.setAttribute("aria-pressed", String(el === button));
+    renderLog();
+  };
+  function navigate() {
+    const key = location.hash.slice(1);
+    activeView = Object.hasOwn(names, key) ? key : "dashboard";
+    for (const link of document.querySelectorAll("[data-view]")) {
+      const selected = activeView === link.dataset.view;
+      if (selected) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+      $("view-" + link.dataset.view).hidden = !selected;
+    }
+    $("view-title").textContent = names[activeView];
+    $(activeView === "riwayat" ? "history-log" : "dashboard-log").append($("door-history"));
+    $("log-filter").hidden = activeView !== "riwayat";
+    renderLog();
+    if (activeView === "dashboard") gambarSemua();
+    window.scrollTo(0, 0);
+  }
+  function refresh() {
+    const now = Date.now();
+    const today = new Date(now);
+    $("today").textContent = dateFormat.format(today);
+    const midnight = today.setHours(0, 0, 0, 0);
+    let count = 0, duration = 0;
+    const fresh = (demoSession || client.connected) && statusAlat !== "offline" && dataTerakhirAt > now - BATAS_DATA_HILANG_MS;
+    for (const [key, event] of Object.entries(events)) {
+      const start = Number(key);
+      if (start >= midnight) count++;
+      const currentOpen = pintu === "TERBUKA" && +riwayat[0]?.buka === start;
+      const end = event.end ?? (currentOpen ? (fresh ? now : Math.max(start, dataTerakhirAt)) : start);
+      duration += Math.max(0, Math.min(end, now) - Math.max(start, midnight));
+    }
+    $("daily-count").textContent = count + " kali";
+    $("daily-time").textContent = durasi(duration / 1000);
+    $("device-state").textContent = $("txt-alat").textContent;
+    $("device-broker").textContent = demoSession ? "Simulasi lokal" : $("txt-broker").textContent;
+    const live = online();
+    $("demo-start").disabled = live;
+    if (!demoSession) $("demo-help").textContent = live ? "Alat sedang online. Demo tersedia saat data alat berhenti." : "Jalankan simulasi saat alat offline. Riwayat demo hanya berlaku selama simulasi.";
+    if (live && frame) stopDemo();
+    const exceeded = fresh && pintu === "TERBUKA" && perkiraanBukaDetik() >= limit;
+    $("limit-notice").hidden = !exceeded || alarm;
+    $("limit-notice").textContent = "Pintu terbuka melewati batas dashboard (" + limit + " detik).";
+    const points = titik.filter(p => p.t >= now - 60000 && Number.isFinite(p.suhu));
+    const current = Number($("val-suhu").textContent.replace(/\./g, "").replace(",", "."));
+    const known = Number.isFinite(current);
+    $("zone-marker").hidden = !known;
+    if (known) $("zone-marker").style.left = Math.max(0, Math.min(100, (current + 1) / 8 * 100)) + "%";
+    const zone = current < 1 ? "Di bawah zona ideal" : current > 4 ? "Di atas zona ideal" : "Dalam zona ideal";
+    $("zone-status").textContent = known ? (fresh ? zone : "Pembacaan terakhir · " + zone) : "Menunggu pembacaan suhu";
+    $("session-min").textContent = degrees(low);
+    $("session-max").textContent = degrees(high);
+    const values = points.map(p => p.suhu);
+    $("stability").textContent = !fresh || !known ? "Menunggu data baru" : values.length < 3 ? "Mengumpulkan sampel" :
+      Math.max(...values) - Math.min(...values) <= 1 ? "Stabil" : "Berfluktuasi";
+  }
+  client.on("message", (topic, message, packet) => {
+    if (topic === TOPIK + "/data" && !packet.retain && mentah[0] && mentah[0] !== lastReading) {
+      lastReading = mentah[0];
+      lastLive = Date.now();
+      const value = mentah[0].suhu;
+      if (Number.isFinite(value)) { low = Math.min(low, value); high = Math.max(high, value); }
+      if (frame) stopDemo();
+    }
+    collectEvents();
+    refresh();
+  });
+  window.addEventListener("fridgeguard:history-cleared", () => {
+    events = {}; low = Infinity; high = -Infinity;
+    try { appStorage().removeItem(sessionsKey); } catch {}
+    refresh();
+  });
+  window.addEventListener("hashchange", navigate);
+  collectEvents();
+  navigate();
+  refresh();
+  setInterval(refresh, 1000);
 })();
 </script>
 </body>
