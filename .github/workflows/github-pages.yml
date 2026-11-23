@@ -1,0 +1,50 @@
+# Deploy folder dashboard/ ke GitHub Pages setiap ada push ke branch main/master.
+# Tidak butuh secret apa pun (gratis, tanpa akun Azure).
+#
+# Sekali setup (butuh akses admin repo):
+#   Settings > Pages > Build and deployment > Source: pilih "GitHub Actions"
+# Setelah itu link website muncul di ringkasan run workflow ini dan di Settings > Pages.
+
+name: Deploy dashboard ke GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "dashboard/**"
+      - ".github/workflows/github-pages.yml"
+  workflow_dispatch: # bisa dijalankan manual dari tab Actions
+
+# Izin minimum yang dibutuhkan actions/deploy-pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Kalau ada push baru saat deploy berjalan, biarkan yang lama selesai dulu
+# supaya hasil deploy tidak setengah jalan.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Siapkan GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Bungkus folder dashboard jadi artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dashboard # HTML biasa, tidak perlu build
+
+      - name: Publish ke GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

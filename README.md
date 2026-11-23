@@ -29,7 +29,8 @@ firmware/
   Arduino_buat_kulkas/             Versi offline (tanpa WiFi)
     Arduino_buat_kulkas.ino
 .github/workflows/
-  azure-static-web-apps.yml        Deploy otomatis dashboard ke Azure tiap push
+  github-pages.yml                 Deploy otomatis dashboard ke GitHub Pages tiap push (gratis, tanpa secret)
+  azure-static-web-apps.yml        Deploy otomatis dashboard ke Azure tiap push (butuh token Azure)
 ```
 
 ## Topik MQTT
@@ -59,9 +60,49 @@ Perilaku LED: pintu tertutup = semua mati; pintu terbuka sampai 5 detik = LED ku
 3. Isi `WIFI_SSID` dan `WIFI_PASS` di bagian atas file (ESP32 hanya bisa WiFi 2.4 GHz, paling aman pakai hotspot HP). Jangan commit password asli ke GitHub.
 4. Pilih board "ESP32 Dev Module", upload, lalu buka Serial Monitor 115200. Tunggu tulisan `[MQTT] Konek ke broker... OK`.
 
+## Deploy ke GitHub Pages (cara paling gampang)
+
+Dashboard di-deploy otomatis oleh GitHub Actions (`.github/workflows/github-pages.yml`) setiap ada
+perubahan di folder `dashboard/`. **Tidak butuh secret atau akun Azure.**
+
+Setup sekali saja (butuh akses admin repo):
+
+1. Buka repo di GitHub: **Settings > Pages**.
+2. Bagian **Build and deployment > Source**, pilih **GitHub Actions**, lalu simpan.
+3. Buka tab **Actions**, pilih workflow "Deploy dashboard ke GitHub Pages", klik **Run workflow**.
+4. Kalau sudah hijau, link website muncul di ringkasan run itu dan di **Settings > Pages**
+   (formatnya `https://<user>.github.io/fridge-guard/`).
+
+Setelah itu, setiap push yang mengubah isi `dashboard/` akan otomatis ter-deploy ulang.
+
+### Apakah dashboard di GitHub Pages tetap dapat data dari ESP32?
+
+Ya. GitHub Pages hanya bertugas mengirim file statis (`index.html` + `mqtt.min.js`) ke browser
+pengunjung. Pengambilan data tidak lewat GitHub sama sekali: begitu halaman terbuka, **browser
+pengunjung sendiri** yang konek ke broker dan subscribe ke topik.
+
+```
+ESP32 --(MQTT 1883)--> broker.hivemq.com <--(MQTT over WSS 8884)-- browser pengunjung
+                                                                        ^
+                            GitHub Pages --(kirim file statis via HTTPS)-+
+```
+
+Dua hal yang membuat ini jalan:
+
+- Dashboard sudah memakai `wss://` (WebSocket terenkripsi), bukan `ws://`. GitHub Pages selalu
+  HTTPS, dan browser memblokir koneksi `ws://` yang tidak terenkripsi dari halaman HTTPS.
+- Topik di firmware dan dashboard sama persis (`fridgeguard/kel-7`), jadi data yang dipublish
+  ESP32 langsung terbaca dashboard.
+
+Catatan: broker HiveMQ publik itu terbuka tanpa password, dan situs GitHub Pages bisa dibuka siapa
+saja. Untuk tugas kuliah tidak masalah, tapi jangan kirim data sensitif ke topik ini.
+
 ## Deploy ke Azure (Static Web Apps)
 
-Dashboard di-deploy otomatis oleh GitHub Actions (`.github/workflows/azure-static-web-apps.yml`) setiap ada perubahan di folder `dashboard/`. Workflow ini butuh deployment token dari Azure.
+Alternatif kalau mau pakai Azure. Dashboard di-deploy otomatis oleh GitHub Actions
+(`.github/workflows/azure-static-web-apps.yml`) setiap ada perubahan di folder `dashboard/`.
+Workflow ini butuh deployment token dari Azure. Kalau cuma mau pakai GitHub Pages, workflow ini
+boleh dibiarkan saja (akan gagal sampai secret-nya dipasang) atau filenya dihapus.
 
 Yang punya akun Azure:
 
