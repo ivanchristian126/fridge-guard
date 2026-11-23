@@ -65,15 +65,19 @@ Perilaku LED: pintu tertutup = semua mati; pintu terbuka sampai 5 detik = LED ku
 Dashboard di-deploy otomatis oleh GitHub Actions (`.github/workflows/github-pages.yml`) setiap ada
 perubahan di folder `dashboard/`. **Tidak butuh secret atau akun Azure.**
 
-Workflow ini menyalakan GitHub Pages sendiri (`enablement: true`), jadi normalnya tinggal:
+Setup sekali saja. **Langkah 1 wajib dilakukan yang punya akses admin repo** dan tidak bisa
+digantikan workflow: menyalakan Pages pertama kali butuh izin admin, sedangkan `GITHUB_TOKEN`
+milik Actions cuma punya izin `pages: write`. (Workflow sudah memakai `enablement: true`, tapi itu
+hanya menolong di repo yang mengizinkan; di repo ini tetap harus manual dulu.)
 
-1. Buka tab **Actions**, pilih workflow "Deploy dashboard ke GitHub Pages", klik **Run workflow**.
-2. Kalau sudah hijau, link website muncul di ringkasan run itu dan di **Settings > Pages**
+1. Buka repo di GitHub: **Settings > Pages**. Bagian **Build and deployment > Source**, pilih
+   **GitHub Actions**, lalu simpan.
+2. Buka tab **Actions**, pilih workflow "Deploy dashboard ke GitHub Pages", klik **Run workflow**.
+3. Kalau sudah hijau, link website muncul di ringkasan run itu dan di **Settings > Pages**
    (formatnya `https://ivanchristian126.github.io/fridge-guard/`).
 
-Kalau step "Siapkan GitHub Pages" gagal dengan pesan soal izin, berarti Pages harus dinyalakan
-manual sekali oleh yang punya akses admin repo: **Settings > Pages > Build and deployment >
-Source**, pilih **GitHub Actions**, simpan, lalu jalankan ulang workflow-nya.
+Selama langkah 1 belum dilakukan, workflow akan gagal di step "Siapkan GitHub Pages". Itu memang
+penyebabnya, bukan error di file workflow-nya.
 
 Setelah itu, setiap push yang mengubah isi `dashboard/` akan otomatis ter-deploy ulang.
 
